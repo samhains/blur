@@ -16,12 +16,11 @@ def crop(infile,height,width):
 
 
 
-def resize(img, resize_tuple=(25,25)):
+def resize(img, resize_tuple):
     img = img.resize(resize_tuple)
-    print('resizing', img.shape)
     return img.resize((200, 200))
 
-def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num=0):
+def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num=0, resize_tuple=(200,200)):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -30,15 +29,15 @@ def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num
         img.paste(piece)
         path = os.path.join(folder_dir,"IMG-%s.png" % k)
         print('saving to path', path)
-        img = resize(img)
+        img = resize(img, resize_tuple)
         imgs.append(np.asarray(img))
         img.save(path)
     return imgs
 
-def slice_resize(infile, folder_dir, resize):
+def slice_resize(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=25, width=25, resize=resize)
+    slice_img(infile, folder_dir=folder_dir, height=100, width=100, resize_tuple=(25,25))
 
 
 def montage(images, saveto='montage.png'):
@@ -80,10 +79,6 @@ def montage(images, saveto='montage.png'):
             upper_x = (i + 1) * img_h
             lower_y = j * img_w
             upper_y = (j + 1) * img_w
-            print('lower_x', lower_x)
-            print('upper_x', upper_x)
-            print('lower_y', lower_y)
-            print('upper_y', upper_y)
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
                 m[lower_x:upper_x,
