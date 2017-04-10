@@ -1,11 +1,7 @@
-from sys import argv
-from PIL import Image
 import os
-from natsort import natsorted, ns
 import utils
 import matplotlib.pyplot as plt
 from skimage.transform import resize
-import numpy as np
 
 dirname = path
 

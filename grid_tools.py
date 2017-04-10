@@ -21,7 +21,6 @@ def crop(infile,height,width):
 
 
 
-
 def resize(img, resize_tuple):
     img = img.resize(resize_tuple)
     return img.resize((RESIZE_WIDTH, RESIZE_HEIGHT))
