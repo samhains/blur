@@ -18,6 +18,7 @@ def crop(infile,height,width):
 
 def slice_img(infile, folder_name='clean_img', height=200, width=200, start_num=0, resize=lambda a: a):
     imgs = []
+    print(folder_name)
     if not os.path.exists(folder_name):
         os.mkdir(folder_name)
     for k,piece in enumerate(crop(infile,height,width),start_num):
@@ -98,16 +99,14 @@ def sort_and_montage(folder_name, file_name='montage.png'):
     # montage(imgs)
     montage(imgs, saveto=file_name)
 
-script, first = argv
-
-print ("The script is called:", script)
-print ("Your first variable is:", first)
+script, first, file_name  = argv
 
 if first == 'slice':
-    slice_img('4_test_arange_1.png')
+    slice_img(file_name)
 
 if first == 'slice_resize':
-    slice_resize('./clean_img/IMG-33.png', 'IMG-33')
+    file_name_no_ext = file_name.split('.')[0]
+    slice_resize('./clean_img/'+file_name_no_ext, file_name)
 
 if first == 'montage':
-    sort_and_montage('./IMG-33')
+    sort_and_montage('./'+file_name)
