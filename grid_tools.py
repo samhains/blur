@@ -5,8 +5,11 @@ from natsort import natsorted, ns
 import matplotlib.pyplot as plt
 import numpy as np
 
-CROP_HEIGHT = 256
-CROP_WIDTH = 256
+RESIZE_HEIGHT = 256
+RESIZE_WIDTH = 256
+RESIZE_TUPLE = (32, 32)
+SLICE_HEIGHT = 32
+SLICE_WIDTH = 32
 
 def crop(infile,height,width):
     im = Image.open(infile)
@@ -21,9 +24,9 @@ def crop(infile,height,width):
 
 def resize(img, resize_tuple):
     img = img.resize(resize_tuple)
-    return img.resize((CROP_WIDTH, CROP_HEIGHT))
+    return img.resize((RESIZE_WIDTH, RESIZE_HEIGHT))
 
-def slice_img(infile, folder_dir='./clean_img', height=CROP_HEIGHT, width=CROP_WIDTH, start_num=0, resize_tuple=(CROP_WIDTH,CROP_HEIGHT)):
+def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESIZE_WIDTH, start_num=0, resize_tuple=(RESIZE_WIDTH,RESIZE_HEIGHT)):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -40,7 +43,7 @@ def slice_img(infile, folder_dir='./clean_img', height=CROP_HEIGHT, width=CROP_W
 def slice_resize(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=100, width=100, resize_tuple=(32,32))
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_HEIGHT, width=SLICE_WIDTH, resize_tuple=RESIZE_TUPLE)
 
 
 def montage(images, saveto='montage.png'):
