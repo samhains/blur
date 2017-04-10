@@ -15,7 +15,13 @@ def crop(infile,height,width):
 
 
 
-def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num=0, resize=lambda a: a):
+
+def resize(img, resize_tuple=(25,25)):
+    img = img.resize(resize_tuple)
+    print('resizing', img.shape)
+    return img.resize((200, 200))
+
+def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num=0):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -29,11 +35,11 @@ def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num
         img.save(path)
     return imgs
 
-
-def slice_resize(infile, folder_dir):
+def slice_resize(infile, folder_dir, resize):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=25, width=25, resize=lambda a: a.resize((200,200)))
+    slice_img(infile, folder_dir=folder_dir, height=25, width=25, resize=resize)
+
 
 def montage(images, saveto='montage.png'):
     """Draw all images as a montage separated by 1 pixel borders.
