@@ -5,6 +5,9 @@ from natsort import natsorted, ns
 import matplotlib.pyplot as plt
 import numpy as np
 
+CROP_HEIGHT = 256
+CROP_WIDTH = 256
+
 def crop(infile,height,width):
     im = Image.open(infile)
     imgwidth, imgheight = im.size
@@ -18,9 +21,9 @@ def crop(infile,height,width):
 
 def resize(img, resize_tuple):
     img = img.resize(resize_tuple)
-    return img.resize((200, 200))
+    return img.resize((CROP_WIDTH, CROP_HEIGHT))
 
-def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num=0, resize_tuple=(200,200)):
+def slice_img(infile, folder_dir='./clean_img', height=CROP_HEIGHT, width=CROP_WIDTH, start_num=0, resize_tuple=(CROP_WIDTH,CROP_HEIGHT)):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -37,7 +40,7 @@ def slice_img(infile, folder_dir='./clean_img', height=200, width=200, start_num
 def slice_resize(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=100, width=100, resize_tuple=(25,25))
+    slice_img(infile, folder_dir=folder_dir, height=100, width=100, resize_tuple=(32,32))
 
 
 def montage(images, saveto='montage.png'):
