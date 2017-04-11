@@ -6,29 +6,25 @@ from natsort import natsorted, ns
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-import cv2
 
-RESIZE_HEIGHT = 750
-RESIZE_WIDTH = 750
+RESIZE_HEIGHT = 256
+RESIZE_WIDTH = 256
+RESIZE_MAX = 750
 RESIZE_TUPLE = (32, 32)
 SIGMA = 3
 SLICE_HEIGHT = 256
 SLICE_WIDTH = 256
+NUM_OF_CROPS = 3
+OVERLAP = 7
 
 
 def crop(infile,height,width):
     im = Image.open(infile)
-    im = im.resize((RESIZE_WIDTH, RESIZE_HEIGHT))
+    im = im.resize((RESIZE_MAX, RESIZE_MAX))
     imgwidth, imgheight = im.size
-    num_of_crops_y = 3
-    print(num_of_crops_y)
-    num_of_crops_x = 3
-    overlap_y = SLICE_HEIGHT - RESIZE_HEIGHT/num_of_crops_y
-    overlap_x = SLICE_WIDTH - RESIZE_WIDTH/num_of_crops_x
     # add overlap to width or height unless this would make the y<0, x<0, or y> RESIZE_HEIGHT, x>RESIZE_WIDTH
-    print('overlap_x', overlap_x)
-    for i in range(imgheight//height):
-        for j in range(imgwidth//width):
+    for i in range(NUM_OF_CROPS):
+        for j in range(NUM_OF_CROPS):
             x_min = calc_x_min(j, width)
             x_max = calc_x_max(j, width)
             y_min = calc_y_min(i, height)
@@ -37,17 +33,30 @@ def crop(infile,height,width):
             # box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
+def calc_min_overlap(val):
+    if val - OVERLAP < 0:
+        return val - OVERLAP
+    else:
+        return val
+
+def calc_max_overlap(val):
+    if val + OVERLAP > RESIZE_MAX:
+        return val
+    else:
+        return val + OVERLAP
+
+
 def calc_x_min(j, width):
-    return j*width
+    return calc_min_overlap(j*width)
 
 def calc_y_min(i, height):
-    return i*height
+    return calc_min_overlap(i*height)
 
 def calc_x_max(j, width):
-    return (j+1)*width
+    return calc_max_overlap((j+1)*width)
 
 def calc_y_max(i, height):
-    return (i+1)*height
+    return calc_max_overlap((i+1)*height)
 
 def crop_2(infile,height,width):
     im = Image.open(infile)
@@ -75,9 +84,10 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
         print('saving to path', path)
         img = img.resize((RESIZE_HEIGHT, RESIZE_WIDTH))
         img = np.asarray(img)
-        if blur:
+        if False:
             img = blur_f(img)
         #imgs.append(img)
+        print(img.shape)
         scipy.misc.imsave(path, img)
     return imgs
 
