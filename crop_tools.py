@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from skimage.transform import resize
 from multiprocessing.dummy import Pool as ThreadPool 
 import numpy as np
+import scipy
 
 NUM_OF_THREADS=100
 
@@ -21,22 +22,12 @@ filenames_split = np.array_split(filenames, NUM_OF_THREADS)
 # Then resize the square image to 100 x 100 pixels
 def save_cropped(filenames_arr):
     for fname in filenames_arr:
-        img = plt.imread(fname)
+        img = scipy.misc.imread(fname)
+        print(img.shape)
         fname = fname.split('/')[-1]
         if(img.shape[0] > 256 and img.shape[1] > 256):
             img = utils.imcrop_tosquare(img)
             img = resize(img, (256, 256))
             fname = './cropped/'+fname
+            scypi.misc.imsave(fname, img)
 
-            plt.imsave(fname, arr=img)
-
-#os.mkdir('ordered')
-def order(filenames):
-    i = 1
-    for fname in filenames:
-        img = plt.imread(fname)
-        plt.imsave("./ordered/{}.jpg".format(i), arr=img)
-        i = i + 1
-
-#results = pool.map(save_cropped, filenames_split)
-order(filenames)
