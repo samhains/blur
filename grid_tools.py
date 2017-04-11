@@ -5,6 +5,7 @@ import os
 from natsort import natsorted, ns
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 
 RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
@@ -22,7 +23,7 @@ def crop(infile,height,width):
             yield im.crop(box)
 
 
-def blur(img):
+def blur_f(img):
     return gaussian(img, sigma=SIGMA, multichannel=True)
 
 
@@ -39,10 +40,11 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
         img.paste(piece)
         path = os.path.join(folder_dir,"IMG-%s.png" % k)
         print('saving to path', path)
+        img = np.asarray(img)
         if blur:
-            img = blur(img)
-        imgs.append(np.asarray(img))
-        img.save(path)
+            img = blur_f(img)
+        #imgs.append(img)
+        scipy.misc.imsave(path, img)
     return imgs
 
 def slice_blur(infile, folder_dir):
