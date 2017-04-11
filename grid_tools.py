@@ -30,7 +30,7 @@ def blur(img):
 #     img = img.blur(resize_tuple)
 #     return img.blur((RESIZE_WIDTH, RESIZE_HEIGHT))
 
-def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESIZE_WIDTH, start_num=0, blur=False, resize_tuple=(RESIZE_WIDTH,RESIZE_HEIGHT)):
+def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESIZE_WIDTH, start_num=0, blur=False):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -39,6 +39,7 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
         img.paste(piece)
         path = os.path.join(folder_dir,"IMG-%s.png" % k)
         print('saving to path', path)
+        img = img.resize((RESIZE_HEIGHT, RESIZE_WIDTH))
         if blur:
             img = blur(img)
         imgs.append(np.asarray(img))
