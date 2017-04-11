@@ -1,4 +1,5 @@
 from sys import argv
+from skimage.filters import gaussian
 from PIL import Image
 import os
 from natsort import natsorted, ns
@@ -8,8 +9,9 @@ import numpy as np
 RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
 RESIZE_TUPLE = (32, 32)
-SLICE_HEIGHT = 32
-SLICE_WIDTH = 32
+SIGMA = 10
+SLICE_HEIGHT = 128
+SLICE_WIDTH = 128
 
 def crop(infile,height,width):
     im = Image.open(infile)
@@ -20,12 +22,15 @@ def crop(infile,height,width):
             yield im.crop(box)
 
 
+def blur(img):
+    return gaussian(img, sigma=SIGMA, multichannel=True)
 
-def resize(img, resize_tuple):
-    img = img.resize(resize_tuple)
-    return img.resize((RESIZE_WIDTH, RESIZE_HEIGHT))
 
-def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESIZE_WIDTH, start_num=0, resize_tuple=(RESIZE_WIDTH,RESIZE_HEIGHT)):
+# def blur(img, resize_tuple):
+#     img = img.blur(resize_tuple)
+#     return img.blur((RESIZE_WIDTH, RESIZE_HEIGHT))
+
+def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESIZE_WIDTH, start_num=0, blur=False, resize_tuple=(RESIZE_WIDTH,RESIZE_HEIGHT)):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -34,15 +39,16 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
         img.paste(piece)
         path = os.path.join(folder_dir,"IMG-%s.png" % k)
         print('saving to path', path)
-        img = resize(img, resize_tuple)
+        if blur:
+            img = blur(img)
         imgs.append(np.asarray(img))
         img.save(path)
     return imgs
 
-def slice_resize(infile, folder_dir):
+def slice_blur(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=SLICE_HEIGHT, width=SLICE_WIDTH, resize_tuple=RESIZE_TUPLE)
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_HEIGHT, width=SLICE_WIDTH, blur=True, resize_tuple=RESIZE_TUPLE)
 
 
 def montage(images, saveto='montage.png'):
@@ -111,8 +117,8 @@ print ("Your first variable is:", first)
 if first == 'slice':
     slice_img(file_name, save_dir)
 
-if first == 'slice_resize':
-    slice_resize(file_name, save_dir)
+if first == 'slice_blur':
+    slice_blur(file_name, save_dir)
 
 if first == 'montage':
     sort_and_montage(file_name, save_dir)
