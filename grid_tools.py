@@ -15,7 +15,9 @@ SIGMA = 3
 SLICE_HEIGHT = 256
 SLICE_WIDTH = 256
 NUM_OF_CROPS = 3
-OVERLAP = 20
+
+#CALCULATING OVERAPS
+OVERLAP = 8
 OVERLAP_AMOUNT = int(OVERLAP/2)
 
 def crop(infile,height,width):
@@ -46,7 +48,7 @@ def calc_max_overlap(j, width):
     if j == NUM_OF_CROPS - 1:
         return (j + 1) * RESIZE_HEIGHT
     else:
-        return (j + 1) * RESIZE_HEIGHT - (j+1 * OVERLAP_AMOUNT)
+        return (j + 1) * RESIZE_HEIGHT - ((j+1) * OVERLAP_AMOUNT)
 
 
 
@@ -116,24 +118,29 @@ def overlap_crop_y(img, min_val, max_val):
 def montage(images, saveto='montage.png'):
     if isinstance(images, list):
         images = np.array(images)
-    n_plots = int(np.ceil(np.sqrt(images.shape[0])))
     m = np.ones(
         (RESIZE_MAX,
             RESIZE_MAX, 3)) * 0.5
     for i in range(NUM_OF_CROPS):
         for j in range(NUM_OF_CROPS):
-            this_filter = i * n_plots + j
+            this_filter = i * NUM_OF_CROPS + j
 
             x_min = calc_min_overlap(i, RESIZE_WIDTH)
             x_max = calc_max_overlap(i, RESIZE_WIDTH)
             y_min = calc_min_overlap(j, RESIZE_HEIGHT)
             y_max = calc_max_overlap(j, RESIZE_HEIGHT)
+
             print('xmin', x_min, 'xmax', x_max, 'y_min', y_min, 'y_max', y_max)
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
                 this_img = overlap_crop_x(this_img, x_min, x_max)
                 this_img = overlap_crop_y(this_img, y_min, y_max)
                 # this_img = np.asarray(this_img)
+                print(this_img)
+                print(this_img)
+                print('j', j)
+                print('x_size', x_max - x_min)
+                print('y_size', y_max - y_min)
                 m[x_min:x_max,
                   y_min:y_max] = this_img
     plt.imsave(arr=m, fname=saveto)
