@@ -6,15 +6,50 @@ from natsort import natsorted, ns
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
+import cv2
 
-RESIZE_HEIGHT = 256
-RESIZE_WIDTH = 256
+RESIZE_HEIGHT = 750
+RESIZE_WIDTH = 750
 RESIZE_TUPLE = (32, 32)
-SIGMA = 10
-SLICE_HEIGHT = 128
-SLICE_WIDTH = 128
+SIGMA = 3
+SLICE_HEIGHT = 256
+SLICE_WIDTH = 256
+
 
 def crop(infile,height,width):
+    im = Image.open(infile)
+    im = im.resize((RESIZE_WIDTH, RESIZE_HEIGHT))
+    imgwidth, imgheight = im.size
+    num_of_crops_y = 3
+    print(num_of_crops_y)
+    num_of_crops_x = 3
+    overlap_y = SLICE_HEIGHT - RESIZE_HEIGHT/num_of_crops_y
+    overlap_x = SLICE_WIDTH - RESIZE_WIDTH/num_of_crops_x
+    # add overlap to width or height unless this would make the y<0, x<0, or y> RESIZE_HEIGHT, x>RESIZE_WIDTH
+    print('overlap_x', overlap_x)
+    for i in range(imgheight//height):
+        for j in range(imgwidth//width):
+            x_min = calc_x_min(j, width)
+            x_max = calc_x_max(j, width)
+            y_min = calc_y_min(i, height)
+            y_max = calc_y_max(i, height)
+            box = (x_min, y_min, x_max, y_max)
+            # box = (j*width, i*height, (j+1)*width, (i+1)*height)
+            yield im.crop(box)
+
+def calc_x_min(j, width):
+    return j*width
+
+def calc_y_min(i, height):
+    return i*height
+
+def calc_x_max(j, width):
+    return (j+1)*width
+
+def calc_y_max(i, height):
+    return (i+1)*height
+
+def crop_2(infile,height,width):
     im = Image.open(infile)
     imgwidth, imgheight = im.size
     for i in range(imgheight//height):
@@ -22,10 +57,8 @@ def crop(infile,height,width):
             box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
-
 def blur_f(img):
-    return gaussian(img, sigma=SIGMA, multichannel=True)
-
+    return gaussian(img, sigma=SIGMA, preserve_range=True, multichannel=True)
 
 # def blur(img, resize_tuple):
 #     img = img.blur(resize_tuple)
@@ -51,7 +84,7 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
 def slice_blur(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=SLICE_HEIGHT, width=SLICE_WIDTH, blur=True, resize_tuple=RESIZE_TUPLE)
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_HEIGHT, width=SLICE_WIDTH, blur=True)
 
 
 def montage(images, saveto='montage.png'):
@@ -119,6 +152,9 @@ print ("Your first variable is:", first)
 
 if first == 'slice':
     slice_img(file_name, save_dir)
+
+if first == 'slice_overlap':
+    slice_overlap(file_name, save_dir)
 
 if first == 'slice_blur':
     slice_blur(file_name, save_dir)
