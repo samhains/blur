@@ -12,14 +12,15 @@ RESIZE_WIDTH = 256
 RESIZE_MAX = 740
 RESIZE_TUPLE = (32, 32)
 SIGMA = 3
-SLICE_HEIGHT = 256
+SLICE_SIZE = 256
 SLICE_WIDTH = 256
 NUM_OF_CROPS = 3
 
 #CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
-OVERLAP = ((SLICE_HEIGHT*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
+OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
 OVERLAP_AMOUNT = int(OVERLAP/2)
+print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
 
 def crop(infile,height,width):
     im = Image.open(infile)
@@ -36,21 +37,24 @@ def crop(infile,height,width):
             yield im.crop(box)
 
 def calc_min(j, val):
-    return calc_min_overlap(j*val)
+    return calc_overlap(j*val)
 
 def calc_max(j, val):
-    return calc_max_overlap((j+1)*val)
+    return calc_overlap((j+1)*val)
 
 
-def calc_min_overlap(i, width):
-    return i * RESIZE_HEIGHT - (i * OVERLAP_AMOUNT)
+# def calc_min_overlap(i, width):
+#     return i * RESIZE_HEIGHT - (i * OVERLAP_AMOUNT)
 
-def calc_max_overlap(j, width):
-    if j == NUM_OF_CROPS - 1:
-        return (j + 1) * RESIZE_HEIGHT
+def calc_overlap(j, width):
+    if j < 0:
+        return 0
+    elif  j == 0:
+        return SLICE_SIZE - OVERLAP_AMOUNT
+    elif j == NUM_OF_CROPS - 1:
+        return (j + 1) * SLICE_SIZE - ((j*2) * OVERLAP_AMOUNT)
     else:
-        return (j + 1) * RESIZE_HEIGHT - ((j+1) * OVERLAP_AMOUNT)
-
+        return (j + 1) * SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
 
 
 def crop_2(infile,height,width):
@@ -85,7 +89,7 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
 def slice_blur(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=SLICE_HEIGHT, width=SLICE_WIDTH, blur=False)
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_WIDTH, blur=False)
 
 
 def overlap_crop_x(img, min_val, max_val):
@@ -93,8 +97,9 @@ def overlap_crop_x(img, min_val, max_val):
     img = np.asarray(img, np.uint8)
     img = Image.fromarray(img)
     width, height = img.size
-    crop_amount = OVERLAP/2
+    crop_amount = OVERLAP_AMOUNT
     if min_val == 0:
+        print('CROPPING', (0, 0, width - crop_amount, height))
         return img.crop((0, 0, width - crop_amount, height))
     if max_val == RESIZE_MAX:
         return img.crop((crop_amount, 0, width, height))
@@ -112,6 +117,7 @@ def overlap_crop_y(img, min_val, max_val):
     if max_val == RESIZE_MAX:
         return img.crop((0, 0, width, height - crop_amount))
     else:
+        print('CROPPING', 0, crop_amount, width, height - crop_amount)
         return img.crop((0, crop_amount, width, height - crop_amount))
 
 
@@ -126,24 +132,22 @@ def montage(images, saveto='montage.png'):
         for j in range(NUM_OF_CROPS):
             this_filter = i * NUM_OF_CROPS + j
 
-            x_min = calc_min_overlap(i, RESIZE_WIDTH)
-            x_max = calc_max_overlap(i, RESIZE_WIDTH)
-            y_min = calc_min_overlap(j, RESIZE_HEIGHT)
-            y_max = calc_max_overlap(j, RESIZE_HEIGHT)
+            x_min = calc_overlap(i-1, RESIZE_WIDTH)
+            x_max = calc_overlap(i, RESIZE_WIDTH)
+            y_min = calc_overlap(j-1, RESIZE_HEIGHT)
+            y_max = calc_overlap(j, RESIZE_HEIGHT)
 
             print('xmin', x_min, 'xmax', x_max, 'y_min', y_min, 'y_max', y_max)
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
-                this_img = overlap_crop_x(this_img, x_min, x_max)
                 this_img = overlap_crop_y(this_img, y_min, y_max)
+                this_img = overlap_crop_x(this_img, x_min, x_max)
                 # this_img = np.asarray(this_img)
-                print(this_img)
-                print(this_img)
-                print('j', j)
+                print(this_img.size)
                 print('x_size', x_max - x_min)
                 print('y_size', y_max - y_min)
-                m[x_min:x_max,
-                  y_min:y_max] = this_img
+                m[y_min:y_max,
+                    x_min:x_max] = this_img
     plt.imsave(arr=m, fname=saveto)
     return m
 
