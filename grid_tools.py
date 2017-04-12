@@ -9,18 +9,21 @@ import scipy
 
 RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
-RESIZE_MAX = 760
+# RESIZE_MAX = 720
 RESIZE_TUPLE = (32, 32)
 SIGMA = 12
 SLICE_SIZE = 256
+OVERLAP=180
 NUM_OF_CROPS = 3
 
+# OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
+OVERLAP_AMOUNT = int(OVERLAP/2)
 #CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
-OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
-OVERLAP_AMOUNT = int(OVERLAP/2)
+RESIZE_MAX = SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS* OVERLAP)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
 print("OVERLAP AMOUNT", OVERLAP)
+print("RESIZE_MAX", RESIZE_MAX)
 
 def calc_overlap_min(j):
     return (j * SLICE_SIZE) - (j * OVERLAP)
@@ -43,7 +46,7 @@ def blur_f(img):
 def crop_overlap(infile,height,width):
     im = Image.open(infile)
     im = im.resize((RESIZE_MAX, RESIZE_MAX))
-    im = im.filter(ImageFilter.GaussianBlur(radius=SIGMA))
+    # im = im.filter(ImageFilter.GaussianBlur(radius=SIGMA))
 
     # imgwidth, imgheight = im.size
     for i in range(NUM_OF_CROPS):
