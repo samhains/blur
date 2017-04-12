@@ -21,40 +21,8 @@ OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
 OVERLAP_AMOUNT = int(OVERLAP/2)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
 
-def crop(infile,height,width):
-    print(height, width)
-    im = Image.open(infile)
-    im = im.resize((RESIZE_MAX, RESIZE_MAX))
-    # imgwidth, imgheight = im.size
-    for i in range(NUM_OF_CROPS):
-        for j in range(NUM_OF_CROPS):
-            print('i', i, 'j', j)
-            x_min = calc_overlap_min(i)
-            x_max = x_min + SLICE_SIZE
-            y_min = calc_overlap_min(j)
-            y_max = y_min + SLICE_SIZE
-            box = (x_min, y_min, x_max, y_max)
-            box = (j*width, i*height, (j+1)*width, (i+1)*height)
-            yield im.crop(box)
-
 def calc_overlap_min(j):
     return (j * SLICE_SIZE) - (j * OVERLAP)
-
-def calc_min(j, val):
-    return calc_min_overlap(j*val)
-
-def calc_max(j, val):
-    return calc_max_overlap((j+1)*val)
-
-def calc_min_overlap(i):
-    return i * RESIZE_HEIGHT - (i * OVERLAP_AMOUNT)
-
-def calc_max_overlap(j):
-    if j == NUM_OF_CROPS - 1:
-        return (j + 1) * RESIZE_HEIGHT
-    else:
-        return (j + 1) * RESIZE_HEIGHT - ((j+1) * OVERLAP_AMOUNT)
-
 
 
 def calc_overlap(j, width):
@@ -67,8 +35,28 @@ def calc_overlap(j, width):
     else:
         return (j + 1) * SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
 
+def blur_f(img):
+    return gaussian(img, sigma=SIGMA, preserve_range=True, multichannel=True)
 
-def crop_2(infile,height,width):
+
+def crop_overlap(infile,height,width):
+    im = Image.open(infile)
+    im = im.resize((RESIZE_MAX, RESIZE_MAX))
+
+    # imgwidth, imgheight = im.size
+    for i in range(NUM_OF_CROPS):
+        for j in range(NUM_OF_CROPS):
+            print('i', i, 'j', j)
+            x_min = calc_overlap_min(i)
+            x_max = x_min + SLICE_SIZE
+            y_min = calc_overlap_min(j)
+            y_max = y_min + SLICE_SIZE
+            box = (x_min, y_min, x_max, y_max)
+            box = (j*width, i*height, (j+1)*width, (i+1)*height)
+            yield im.crop(box)
+
+
+def crop(infile,height,width):
     im = Image.open(infile)
     imgwidth, imgheight = im.size
     for i in range(imgheight//height):
@@ -76,19 +64,15 @@ def crop_2(infile,height,width):
             box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
-def blur_f(img):
-    return gaussian(img, sigma=SIGMA, preserve_range=True, multichannel=True)
-
-def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False):
+def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False, resize=False, crop_f=crop):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    for k,piece in enumerate(crop(infile,height,width),start_num):
+    for k,piece in enumerate(crop_f(infile,height,width),start_num):
         img = Image.new('RGB', (height,width), 255)
         img.paste(piece)
         path = os.path.join(folder_dir,"IMG-%s.png" % k)
         print('saving to path', path)
-        img = img.resize((RESIZE_HEIGHT, RESIZE_WIDTH))
         img = np.asarray(img)
         # if blur:
         #     img = blur_f(img)
@@ -97,10 +81,11 @@ def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_S
         scipy.misc.imsave(path, img)
     return imgs
 
-def slice_blur(infile, folder_dir):
+
+def slice_overlap(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False)
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False, crop_f=crop_overlap, resize=True)
 
 
 def overlap_crop_x(img, min_val, max_val):
@@ -190,8 +175,8 @@ if first == 'slice':
 # if first == 'slice_overlap':
 #     slice_overlap(file_name, save_dir)
 
-if first == 'slice_blur':
-    slice_blur(file_name, save_dir)
+if first == 'slice_overlap':
+    slice_overlap(file_name, save_dir)
 
 if first == 'montage':
     sort_and_montage(file_name, save_dir)
