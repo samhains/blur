@@ -13,7 +13,6 @@ RESIZE_MAX = 740
 RESIZE_TUPLE = (32, 32)
 SIGMA = 3
 SLICE_SIZE = 256
-SLICE_WIDTH = 256
 NUM_OF_CROPS = 3
 
 #CALCULATING OVERAPS
@@ -23,28 +22,40 @@ OVERLAP_AMOUNT = int(OVERLAP/2)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
 
 def crop(infile,height,width):
+    print(height, width)
     im = Image.open(infile)
     im = im.resize((RESIZE_MAX, RESIZE_MAX))
-    imgwidth, imgheight = im.size
+    # imgwidth, imgheight = im.size
     for i in range(NUM_OF_CROPS):
         for j in range(NUM_OF_CROPS):
-            x_min = calc_min(j, width)
-            x_max = calc_max(j, width)
-            y_min = calc_min(i, height)
-            y_max = calc_max(i, height)
+            print('i', i, 'j', j)
+            x_min = calc_overlap_min(i)
+            x_max = x_min + SLICE_SIZE
+            y_min = calc_overlap_min(j)
+            y_max = y_min + SLICE_SIZE
             box = (x_min, y_min, x_max, y_max)
-            # box = (j*width, i*height, (j+1)*width, (i+1)*height)
+            box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
+def calc_overlap_min(j):
+    return (j * SLICE_SIZE) - (j * OVERLAP)
+
 def calc_min(j, val):
-    return calc_overlap(j*val)
+    return calc_min_overlap(j*val)
 
 def calc_max(j, val):
-    return calc_overlap((j+1)*val)
+    return calc_max_overlap((j+1)*val)
+
+def calc_min_overlap(i):
+    return i * RESIZE_HEIGHT - (i * OVERLAP_AMOUNT)
+
+def calc_max_overlap(j):
+    if j == NUM_OF_CROPS - 1:
+        return (j + 1) * RESIZE_HEIGHT
+    else:
+        return (j + 1) * RESIZE_HEIGHT - ((j+1) * OVERLAP_AMOUNT)
 
 
-# def calc_min_overlap(i, width):
-#     return i * RESIZE_HEIGHT - (i * OVERLAP_AMOUNT)
 
 def calc_overlap(j, width):
     if j < 0:
@@ -68,7 +79,7 @@ def crop_2(infile,height,width):
 def blur_f(img):
     return gaussian(img, sigma=SIGMA, preserve_range=True, multichannel=True)
 
-def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESIZE_WIDTH, start_num=0, blur=False):
+def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -79,17 +90,17 @@ def slice_img(infile, folder_dir='./clean_img', height=RESIZE_HEIGHT, width=RESI
         print('saving to path', path)
         img = img.resize((RESIZE_HEIGHT, RESIZE_WIDTH))
         img = np.asarray(img)
-        if blur:
-            img = blur_f(img)
+        # if blur:
+        #     img = blur_f(img)
         #imgs.append(img)
-        print(img.shape)
+        print('shape', img.shape)
         scipy.misc.imsave(path, img)
     return imgs
 
 def slice_blur(infile, folder_dir):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_WIDTH, blur=False)
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False)
 
 
 def overlap_crop_x(img, min_val, max_val):
@@ -137,10 +148,10 @@ def montage(images, saveto='montage.png'):
         for j in range(NUM_OF_CROPS):
             this_filter = i * NUM_OF_CROPS + j
 
-            x_min = calc_overlap(i-1, RESIZE_WIDTH)
-            x_max = calc_overlap(i, RESIZE_WIDTH)
-            y_min = calc_overlap(j-1, RESIZE_HEIGHT)
-            y_max = calc_overlap(j, RESIZE_HEIGHT)
+            x_min = calc_overlap(i-1, SLICE_SIZE)
+            x_max = calc_overlap(i, SLICE_SIZE)
+            y_min = calc_overlap(j-1, SLICE_SIZE)
+            y_max = calc_overlap(j, SLICE_SIZE)
 
             print('xmin', x_min, 'xmax', x_max, 'y_min', y_min, 'y_max', y_max)
             if this_filter < images.shape[0]:
