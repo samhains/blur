@@ -64,7 +64,7 @@ def crop(infile,height,width):
             box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
-def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False, resize=False, crop_f=crop):
+def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False, resize=False, pix2pix=True, crop_f=crop):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
@@ -73,6 +73,11 @@ def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_S
         img.paste(piece)
         path = os.path.join(folder_dir,"IMG-%s.png" % k)
         print('saving to path', path)
+        if pix2pix:
+            new_img = Image.new('RGB', (512, 256))
+            new_img.paste(img)
+            new_img.paste(img)
+            img = new_img
         img = np.asarray(img)
         # if blur:
         #     img = blur_f(img)
