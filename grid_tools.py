@@ -47,12 +47,11 @@ def crop_overlap(infile,height,width):
     for i in range(NUM_OF_CROPS):
         for j in range(NUM_OF_CROPS):
             print('i', i, 'j', j)
-            x_min = calc_overlap_min(i)
+            x_min = calc_overlap_min(j)
             x_max = x_min + SLICE_SIZE
-            y_min = calc_overlap_min(j)
+            y_min = calc_overlap_min(i)
             y_max = y_min + SLICE_SIZE
             box = (x_min, y_min, x_max, y_max)
-            box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
 
@@ -138,7 +137,6 @@ def montage(images, saveto='montage.png'):
             y_min = calc_overlap(j-1, SLICE_SIZE)
             y_max = calc_overlap(j, SLICE_SIZE)
 
-            print('xmin', x_min, 'xmax', x_max, 'y_min', y_min, 'y_max', y_max)
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
 
