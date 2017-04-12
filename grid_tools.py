@@ -94,12 +94,17 @@ def slice_blur(infile, folder_dir):
 
 def overlap_crop_x(img, min_val, max_val):
     # Left upper right lower
-    img = np.asarray(img, np.uint8)
-    img = Image.fromarray(img)
+    # img = np.asarray(img*255, np.uint8)
+    # img = Image.fromarray(img)
+    print(type(img))
+    if type(img) == np.ndarray:
+        print('ok')
+        img = np.asarray(img*255, np.uint8)
+        img = Image.fromarray(img)
+
     width, height = img.size
     crop_amount = OVERLAP_AMOUNT
     if min_val == 0:
-        print('CROPPING', (0, 0, width - crop_amount, height))
         return img.crop((0, 0, width - crop_amount, height))
     if max_val == RESIZE_MAX:
         return img.crop((crop_amount, 0, width, height))
@@ -107,9 +112,12 @@ def overlap_crop_x(img, min_val, max_val):
         return img.crop((crop_amount, 0, width - crop_amount, height))
 
 def overlap_crop_y(img, min_val, max_val):
+
     # Left upper right lower
-    img = np.asarray(img, np.uint8)
-    img = Image.fromarray(img)
+
+    if type(img) == np.ndarray:
+        img = np.asarray(img*255, np.uint8)
+        img = Image.fromarray(img)
     crop_amount = OVERLAP/2
     width, height = img.size
     if min_val == 0:
@@ -140,14 +148,16 @@ def montage(images, saveto='montage.png'):
             print('xmin', x_min, 'xmax', x_max, 'y_min', y_min, 'y_max', y_max)
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
-                this_img = overlap_crop_y(this_img, y_min, y_max)
-                this_img = overlap_crop_x(this_img, x_min, x_max)
+                this_img = overlap_crop_x(this_img, y_min, y_max)
+                print(this_img)
+                this_img = overlap_crop_y(this_img, x_min, x_max)
                 # this_img = np.asarray(this_img)
                 print(this_img.size)
                 print('x_size', x_max - x_min)
                 print('y_size', y_max - y_min)
-                m[y_min:y_max,
-                    x_min:x_max] = this_img
+                m[x_min:x_max,
+                  y_min:y_max
+                  ] = this_img
     plt.imsave(arr=m, fname=saveto)
     return m
 
