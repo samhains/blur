@@ -9,9 +9,9 @@ import scipy
 
 RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
-RESIZE_MAX = 740
+RESIZE_MAX = 760
 RESIZE_TUPLE = (32, 32)
-SIGMA = 12 
+SIGMA = 12
 SLICE_SIZE = 256
 NUM_OF_CROPS = 3
 
@@ -20,6 +20,7 @@ NUM_OF_OVERLAPS = NUM_OF_CROPS-1
 OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
 OVERLAP_AMOUNT = int(OVERLAP/2)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
+print("OVERLAP AMOUNT", OVERLAP)
 
 def calc_overlap_min(j):
     return (j * SLICE_SIZE) - (j * OVERLAP)
@@ -64,7 +65,7 @@ def crop(infile,height,width):
             box = (j*width, i*height, (j+1)*width, (i+1)*height)
             yield im.crop(box)
 
-def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False, resize=False, pix2pix=True, crop_f=crop):
+def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_SIZE, start_num=0, blur=False, resize=False, pix2pix=False, crop_f=crop):
     imgs = []
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
