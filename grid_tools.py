@@ -88,10 +88,10 @@ def slice_img(infile, folder_dir='./clean_img', height=SLICE_SIZE, width=SLICE_S
     return imgs
 
 
-def slice_overlap(infile, folder_dir):
+def slice_overlap(infile, folder_dir, pix2pix=False):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
-    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False, crop_f=crop_overlap, resize=True)
+    slice_img(infile, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False, crop_f=crop_overlap, resize=True, pix2pix=pix2pix)
 
 
 def overlap_crop_x(img, min_val, max_val):
@@ -183,6 +183,9 @@ if first == 'slice':
 if first == 'slice_overlap':
     slice_overlap(file_name, save_dir)
 
+if first == 'slice_overlap_p2p':
+    slice_overlap(file_name, save_dir)
+    
 if first == 'montage':
     sort_and_montage(file_name, save_dir)
 
