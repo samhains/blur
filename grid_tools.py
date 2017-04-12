@@ -184,7 +184,7 @@ if first == 'slice_overlap':
     slice_overlap(file_name, save_dir)
 
 if first == 'slice_overlap_p2p':
-    slice_overlap(file_name, save_dir)
+    slice_overlap(file_name, save_dir, pix2pix=True)
     
 if first == 'montage':
     sort_and_montage(file_name, save_dir)
