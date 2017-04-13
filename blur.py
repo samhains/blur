@@ -9,9 +9,6 @@ print ("Your arg1 variable is:", arg1)
 if arg1 == 'slice':
     slice_img(arg2, arg3)
 
-# if arg1 == 'slice_overlap':
-#     slice_overlap(arg2, arg3)
-
 if arg1 == 'slice_overlap':
     slice_overlap(arg2, arg3)
 
@@ -27,9 +24,3 @@ if arg1 == 'prepare_p2p':
 
 if arg1 == 'retrieve_p2p':
     retrieve_p2p(arg2, arg3)
-
-# if arg1 == 'dir_montage':
-#     imgs = slice_img(arg2, arg3)
-    # imgs = arr_slice_overlap(imgs)
-    # sort_and_montage(arg2, arg3)
-
