@@ -1,6 +1,7 @@
 from sys import argv
 from skimage.filters import gaussian
 from PIL import Image, ImageFilter
+import uuid
 import os
 from natsort import natsorted, ns
 import matplotlib.pyplot as plt
@@ -11,9 +12,9 @@ RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
 # RESIZE_MAX = 720
 RESIZE_TUPLE = (32, 32)
-SIGMA = 10
+SIGMA = 11
 SLICE_SIZE = 256
-OVERLAP = 30
+OVERLAP = 128
 NUM_OF_CROPS = 3
 
 # OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
@@ -207,5 +208,5 @@ def retrieve_p2p(folder_dir, dest_dir):
     chunked_filenames = np.split(img_filenames, 64)
     i = 1
     for filenames in chunked_filenames:
-        sort_and_montage(filenames, './{}/montage-{}.png'.format(dest_dir,i))
+        sort_and_montage(filenames, './{}/{}.png'.format(dest_dir,uuid.uuid4()))
         i = i + 1
