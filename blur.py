@@ -1,4 +1,4 @@
-from grid_tools import slice_img, slice_overlap, sort_and_montage, prepare_p2p, retrieve_p2p
+from grid_tools import slice_img, slice_overlap, sort_and_montage, prepare_p2p, retrieve_p2p, get_filenames
 from sys import argv
 
 script, arg1, arg2, arg3  = argv
@@ -19,7 +19,8 @@ if arg1 == 'slice_overlap_p2p':
     slice_overlap(arg2, arg3, pix2pix=True)
 
 if arg1 == 'montage':
-    sort_and_montage(arg2, arg3)
+    filenames = get_filenames(arg2)
+    sort_and_montage(filenames, arg3)
 
 if arg1 == 'prepare_p2p':
     prepare_p2p(arg2, arg3)
