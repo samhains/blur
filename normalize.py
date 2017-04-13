@@ -25,7 +25,7 @@ def normalize(input_dir='./input', output_dir='./output'):
         difference = input_mean - output_mean
         adjusted_output = output_img + difference
         adjusted_output = np.clip(adjusted_output, 0, 1)
-        # plt.imsave(filenames[idx], adjusted_output)
-        plt.imsave("processed/{}.jpg".format(idx), adjusted_output)
+        plt.imsave(filenames[idx], adjusted_output)
+        # plt.imsave("processed/{}.jpg".format(idx), adjusted_output)
 
 normalize()
