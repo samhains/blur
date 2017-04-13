@@ -1,4 +1,5 @@
 from sys import argv
+from sklearn.preprocessing import scale
 from skimage.filters import gaussian
 from PIL import Image, ImageFilter
 import os
@@ -13,7 +14,7 @@ RESIZE_WIDTH = 256
 RESIZE_TUPLE = (32, 32)
 SIGMA = 10
 SLICE_SIZE = 256
-OVERLAP = 30
+OVERLAP = 128
 NUM_OF_CROPS = 3
 
 # OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
@@ -133,20 +134,8 @@ def overlap_crop_y(img, min_val, max_val):
     if max_val == RESIZE_MAX:
         return img.crop((0, OVERLAP_AMOUNT, width, height))
     else:
-        print('cropping Y', min_val, max_val)
+        # print('cropping Y', min_val, max_val)
         return img.crop((0, OVERLAP_AMOUNT, width, height - OVERLAP_AMOUNT))
-
-
-# def calc_overlap_y(j, width):
-#     if j < 0:
-#         return 0
-#     elif  j == 0:
-#         return SLICE_SIZE - OVERLAP
-#     elif j == NUM_OF_CROPS - 1:
-#         return (j + 1) * SLICE_SIZE - ((j*2) * OVERLAP_AMOUNT)
-#     else:
-#         return (j + 1) * SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
-
 
 def montage(images, saveto='montage.png'):
     if isinstance(images, list):
@@ -163,10 +152,21 @@ def montage(images, saveto='montage.png'):
             y_min = calc_overlap(j-1, SLICE_SIZE)
             y_max = calc_overlap(j, SLICE_SIZE)
 
-            print('x_min', x_min, 'y_min', y_min, 'x_max', x_max, 'y_max', y_max)
+            # print('x_min', x_min, 'y_min', y_min, 'x_max', x_max, 'y_max', y_max)
+            first_img = images[0]
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
+                try:
+                    y = images[this_filter+1]
+                except:
+                    y = this_img
+                try:
+                    z = images[this_filter+3]
+                except:
+                    z = this_img
 
+                this_img = np.clip(this_img, 0, 1)
+                # print(this_img.max(), this_img.min())
                 this_img = overlap_crop_x(this_img, y_min, y_max)
                 this_img = overlap_crop_y(this_img, x_min, x_max)
                 this_img = np.asarray(this_img, np.uint8)
@@ -187,8 +187,13 @@ def sort_and_montage(filenames, file_name):
     filenames = natsorted(filenames, alg=ns.IGNORECASE)
     imgs = [plt.imread(fname)[..., :3] for fname in filenames]
     imgs = np.array(imgs).astype(np.float32)
-    montage(imgs)
+    if(imgs[0][0][0][0] > 1):
+        imgs = imgs/255.0
     montage(imgs, saveto=file_name)
+
+def prepare_p2p_folder(input_dir, dest_dir):
+    filenames = get_filenames(input_dir)
+
 
 def prepare_p2p(file_name, folder_dir):
     i = 0
