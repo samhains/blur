@@ -11,7 +11,7 @@ RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
 # RESIZE_MAX = 720
 RESIZE_TUPLE = (32, 32)
-SIGMA = 12
+SIGMA = 10
 SLICE_SIZE = 256
 OVERLAP = 30
 NUM_OF_CROPS = 3
@@ -199,11 +199,12 @@ def prepare_p2p(file_name, folder_dir):
         slice_img(img, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False, crop_f=crop_overlap, resize=True, pix2pix=True, montage_n=i)
 
 def retrieve_p2p(folder_dir, dest_dir):
-    if not os.path.exists(folder_dir):
-        os.mkdir(folder_dir)
-    img_filenames = np.array(get_filenames(folder_dir))
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir)
+    img_filenames = get_filenames(folder_dir)
+    img_filenames = natsorted(img_filenames, alg=ns.IGNORECASE)
+    img_filenames = np.array(img_filenames)
     chunked_filenames = np.split(img_filenames, 64)
-    print(chunked_filenames)
     i = 1
     for filenames in chunked_filenames:
         sort_and_montage(filenames, './{}/montage-{}.png'.format(dest_dir,i))
