@@ -3,8 +3,11 @@ import matplotlib.pyplot as plt
 from natsort import natsorted, ns
 import numpy as np
 
-
 BASE_DIR = '/home/paperspace/Code/pix2pix/results/nolikes256/latest_net_G_val/images'
+# BASE_DIR = '.'
+PROCESS_DIR = BASE_DIR + '/processed'
+if not os.path.exists(PROCESS_DIR):
+    os.mkdir(PROCESS_DIR)
 INPUT_DIR = BASE_DIR + '/input'
 OUTPUT_DIR = BASE_DIR + '/output'
 
@@ -36,8 +39,10 @@ def normalize(input_dir=INPUT_DIR, output_dir=OUTPUT_DIR):
         difference = input_mean - output_mean
         adjusted_output = output_img + difference
         adjusted_output = np.clip(adjusted_output, 0, 1)
-        plt.imsave(filenames[idx], adjusted_output)
-        # plt.imsave("processed/{}.jpg".format(idx), adjusted_output)
+        fname = filenames[idx].split('/')[-1]
+        print(fname)
+        # plt.imsave(filenames[idx], adjusted_output)
+        plt.imsave(PROCESS_DIR+"/{}".format(fname), adjusted_output)
 
 
 normalize()
