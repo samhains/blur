@@ -228,7 +228,7 @@ def prepare_p2p(input_dir, output_dir):
                 blur=False,
                 crop_f=crop_overlap,
                 resize=True,
-                pix2pix=False,
+                pix2pix=True,
                 montage_n=i)
 
 
