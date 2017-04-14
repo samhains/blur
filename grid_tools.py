@@ -167,10 +167,10 @@ def montage(images, saveto='montage.png'):
         for j in range(NUM_OF_CROPS):
             this_filter = i * NUM_OF_CROPS + j
 
-            x_min = calc_overlap(i-1, SLICE_SIZE)
-            x_max = calc_overlap(i, SLICE_SIZE)
-            y_min = calc_overlap(j-1, SLICE_SIZE)
-            y_max = calc_overlap(j, SLICE_SIZE)
+            x_min = calc_overlap(i-1)
+            x_max = calc_overlap(i)
+            y_min = calc_overlap(j-1)
+            y_max = calc_overlap(j)
 
             if this_filter < images.shape[0]:
                 this_img = images[this_filter]
@@ -232,12 +232,14 @@ def retrieve_p2p(folder_dir, dest_dir):
     img_filenames = get_filenames(folder_dir)
     img_filenames = natsorted(img_filenames, alg=ns.IGNORECASE)
     img_filenames = np.array(img_filenames)
+    print(len(img_filenames))
     num_of_montages = (len(img_filenames)/64)/9
-    num_of_chunks = num_of_montages*64
-    chunked_filenames = np.split(
-            np.split(img_filenames, num_of_montages),
-            num_of_chunks)
-    i = 1
-    for filenames in chunked_filenames:
-        sort_and_montage(filenames, './{}/montage-{}.png'.format(dest_dir, i))
-        i = i + 1
+    chunked_montages = np.split(img_filenames, num_of_montages)
+    for montage_filenames in chunked_montages:
+        chunked_filenames = np.split(montage_filenames, 64)
+        i = 1
+        for filenames in chunked_filenames:
+            sort_and_montage(
+                    filenames,
+                    './{}/montage-{}.png'.format(dest_dir, i))
+            i = i + 1
