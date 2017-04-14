@@ -1,16 +1,17 @@
+from skimage.filters import gaussian
+from PIL import Image, ImageFilter
+import uuid
 import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
-from skimage.filters import gaussian
-from PIL import Image, ImageFilter
 from natsort import natsorted, ns
 
 RESIZE_HEIGHT = 256
 RESIZE_WIDTH = 256
 # RESIZE_MAX = 720
 RESIZE_TUPLE = (32, 32)
-SIGMA = 10
+SIGMA = 11
 SLICE_SIZE = 256
 OVERLAP = 128
 NUM_OF_CROPS = 3
@@ -112,14 +113,14 @@ def slice_overlap(infile, folder_dir, pix2pix=False):
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
     slice_img(
-            infile,
-            folder_dir=folder_dir,
-            height=SLICE_SIZE,
-            width=SLICE_SIZE,
-            blur=False,
-            crop_f=crop_overlap,
-            resize=True,
-            pix2pix=pix2pix)
+        infile,
+        folder_dir=folder_dir,
+        height=SLICE_SIZE,
+        width=SLICE_SIZE,
+        blur=False,
+        crop_f=crop_overlap,
+        resize=True,
+        pix2pix=pix2pix)
 
 
 def overlap_crop_x(img, min_val, max_val):
@@ -188,16 +189,21 @@ def montage(images, saveto='montage.png'):
 
 def get_filenames(folder_dir):
     return [
-            os.path.join(folder_dir, fname)
-            for fname in os.listdir(folder_dir)
-            if fname.endswith('.jpg') or fname.endswith('.png')]
+        os.path.join(folder_dir, fname)
+        for fname in os.listdir(folder_dir)
+        if fname.endswith('.jpg') or fname.endswith('.png')]
+
+
+def save_image(fname):
+    print(fname)
+    return plt.imread(fname)[..., :3]
 
 
 def sort_and_montage(filenames, file_name):
     # Load every image file in the provided directory
 
     filenames = natsorted(filenames, alg=ns.IGNORECASE)
-    imgs = [plt.imread(fname)[..., :3] for fname in filenames]
+    imgs = [save_image(fname) for fname in filenames]
     imgs = np.array(imgs).astype(np.float32)
     if(imgs[0][0][0][0] > 1):
         imgs = imgs/255.0
@@ -232,14 +238,10 @@ def retrieve_p2p(folder_dir, dest_dir):
     img_filenames = get_filenames(folder_dir)
     img_filenames = natsorted(img_filenames, alg=ns.IGNORECASE)
     img_filenames = np.array(img_filenames)
-    print(len(img_filenames))
     num_of_montages = (len(img_filenames)/64)/9
     chunked_montages = np.split(img_filenames, num_of_montages)
     for montage_filenames in chunked_montages:
         chunked_filenames = np.split(montage_filenames, 64)
-        i = 1
         for filenames in chunked_filenames:
             sort_and_montage(
-                    filenames,
-                    './{}/montage-{}.png'.format(dest_dir, i))
-            i = i + 1
+                filenames, './{}/{}.png'.format(dest_dir, uuid.uuid4()))
