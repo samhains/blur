@@ -6,7 +6,7 @@ import numpy as np
 
 BASE_DIR = '/home/paperspace/Code/pix2pix/results/nolikes256/latest_net_G_val/images'
 INPUT_DIR = BASE_DIR + '/input'
-OUPUT_DIR = BASE_DIR + '/output'
+OUTPUT_DIR = BASE_DIR + '/output'
 
 
 def get_filenames(folder_dir):
