@@ -1,10 +1,12 @@
-from grid_tools import get_filenames
+import os
 import matplotlib.pyplot as plt
 from natsort import natsorted, ns
 import numpy as np
 
-output_filenames = get_filenames('./input')
 
+def get_filenames(folder_dir):
+    return [os.path.join(folder_dir, fname)
+                 for fname in os.listdir(folder_dir) if fname.endswith('.jpg') or fname.endswith('.png')]
 
 def get_images(dir_name):
     filenames = get_filenames(dir_name)
