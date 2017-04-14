@@ -4,6 +4,11 @@ from natsort import natsorted, ns
 import numpy as np
 
 
+BASE_DIR = '/home/paperspace/Code/pix2pix/results/nolikes256/latest_net_G_val/images'
+INPUT_DIR = BASE_DIR + '/input'
+OUPUT_DIR = BASE_DIR + '/output'
+
+
 def get_filenames(folder_dir):
     return [os.path.join(folder_dir, fname)
             for fname in os.listdir(folder_dir)
@@ -17,11 +22,11 @@ def get_images(dir_name):
     return np.array(imgs)
 
 
-def normalize(input_dir='./input', output_dir='./output'):
+def normalize(input_dir=INPUT_DIR, output_dir=OUTPUT_DIR):
     input_imgs = get_images(input_dir)
     output_imgs = get_images(output_dir)
 
-    filenames = get_filenames('./output')
+    filenames = get_filenames(OUTPUT_DIR)
     filenames = natsorted(filenames, alg=ns.IGNORECASE)
 
     for idx, (input_img, output_img) in enumerate(
