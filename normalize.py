@@ -16,6 +16,7 @@ def get_filenames(folder_dir):
 
 
 def get_images(dir_name):
+    print('getting images')
     filenames = get_filenames(dir_name)
     filenames = natsorted(filenames, alg=ns.IGNORECASE)
     imgs = [plt.imread(fname)[..., :3] for fname in filenames]
@@ -36,8 +37,9 @@ def normalize(input_dir=INPUT_DIR, output_dir=OUTPUT_DIR):
         difference = input_mean - output_mean
         adjusted_output = output_img + difference
         adjusted_output = np.clip(adjusted_output, 0, 1)
-        plt.imsave(filenames[idx], adjusted_output)
-        # plt.imsave("processed/{}.jpg".format(idx), adjusted_output)
+        # plt.imsave(filenames[idx], adjusted_output)
+        print(BASE_DIR+"/processed/{}.jpg".format(idx))
+        plt.imsave(BASE_DIR+"/processed/{}.jpg".format(idx), adjusted_output)
 
 
 normalize()
