@@ -1,6 +1,4 @@
-from sys import argv
-from sklearn.preprocessing import scale
-from skimage.filters import gaussian
+# from skimage.filters import gaussian
 from PIL import Image, ImageFilter
 import os
 from natsort import natsorted, ns
@@ -19,12 +17,13 @@ NUM_OF_CROPS = 3
 
 # OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
 OVERLAP_AMOUNT = int(OVERLAP/2)
-#CALCULATING OVERAPS
+# CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
-RESIZE_MAX = SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS* OVERLAP)
+RESIZE_MAX = SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
 print("OVERLAP AMOUNT", OVERLAP)
 print("RESIZE_MAX", RESIZE_MAX)
+
 
 def calc_overlap_min(j):
     return (j * SLICE_SIZE) - (j * OVERLAP)
@@ -177,9 +176,13 @@ def montage(images, saveto='montage.png'):
     plt.imsave(arr=m, fname=saveto)
     return m
 
+
 def get_filenames(folder_dir):
-    return [os.path.join(folder_dir, fname)
-                 for fname in os.listdir(folder_dir) if fname.endswith('.jpg') or fname.endswith('.png')]
+    return [
+            os.path.join(folder_dir, fname)
+            for fname in os.listdir(folder_dir) 
+            if fname.endswith('.jpg') or fname.endswith('.png')]
+
 
 def sort_and_montage(filenames, file_name):
     # Load every image file in the provided directory
@@ -191,17 +194,28 @@ def sort_and_montage(filenames, file_name):
         imgs = imgs/255.0
     montage(imgs, saveto=file_name)
 
-def prepare_p2p_folder(input_dir, dest_dir):
+
+def prepare_p2p(input_dir, output_dir):
+    i = 0
+
     filenames = get_filenames(input_dir)
 
+    imgs_arr = [slice_img(filename, save=False) for filename in filenames]
 
-def prepare_p2p(file_name, folder_dir):
-    i = 0
-    imgs = slice_img(file_name, save=False)
-    for img in imgs:
-        i = i+1
-        print(i)
-        slice_img(img, folder_dir=folder_dir, height=SLICE_SIZE, width=SLICE_SIZE, blur=False, crop_f=crop_overlap, resize=True, pix2pix=True, montage_n=i)
+    for imgs in imgs_arr:
+        for img in imgs:
+            i = i+1
+            slice_img(
+                img, 
+                folder_dir=output_dir, 
+                height=SLICE_SIZE, 
+                width=SLICE_SIZE, 
+                blur=False, 
+                crop_f=crop_overlap, 
+                resize=True, 
+                pix2pix=False, 
+                montage_n=i)
+
 
 def retrieve_p2p(folder_dir, dest_dir):
     if not os.path.exists(dest_dir):
@@ -209,8 +223,12 @@ def retrieve_p2p(folder_dir, dest_dir):
     img_filenames = get_filenames(folder_dir)
     img_filenames = natsorted(img_filenames, alg=ns.IGNORECASE)
     img_filenames = np.array(img_filenames)
-    chunked_filenames = np.split(img_filenames, 64)
+    num_of_montages = (len(img_filenames)/64)/9
+    num_of_chunks = num_of_montages*64
+    chunked_filenames = np.split(
+            np.split(img_filenames, num_of_montages), 
+            num_of_chunks)    
     i = 1
     for filenames in chunked_filenames:
-        sort_and_montage(filenames, './{}/montage-{}.png'.format(dest_dir,i))
+        sort_and_montage(filenames, './{}/montage-{}.png'.format(dest_dir, i))
         i = i + 1
