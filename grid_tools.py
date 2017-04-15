@@ -245,3 +245,4 @@ def retrieve_p2p(folder_dir, dest_dir):
         for filenames in chunked_filenames:
             sort_and_montage(
                 filenames, './{}/{}.png'.format(dest_dir, uuid.uuid4()))
+
