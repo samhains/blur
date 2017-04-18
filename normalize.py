@@ -2,8 +2,12 @@ import os
 import matplotlib.pyplot as plt
 from natsort import natsorted, ns
 import numpy as np
+from sys import argv
 
-BASE_DIR = '/home/paperspace/Code/pix2pix/results/nolikes256/latest_net_G_val/images'
+script, arg1  = argv
+
+ 
+BASE_DIR = '/home/paperspace/Code/pix2pix/results/{}/latest_net_G_val/images'.format(arg1)
 # BASE_DIR = '.'
 PROCESS_DIR = BASE_DIR + '/processed'
 if not os.path.exists(PROCESS_DIR):
@@ -25,8 +29,8 @@ def get_images(filenames):
 
 
 def normalize(input_filenames, output_filenames, batch_num):
-    output_imgs = get_images(input_filenames)
-    input_imgs = get_images(output_filenames)
+    output_imgs = get_images(output_filenames)
+    input_imgs = get_images(input_filenames)
 
     filenames = get_filenames(OUTPUT_DIR)
     filenames = natsorted(filenames, alg=ns.IGNORECASE)

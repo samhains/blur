@@ -41,10 +41,6 @@ def calc_overlap(j):
         return (j + 1) * SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
 
 
-def blur_f(img):
-    return gaussian(img, sigma=SIGMA, multichannel=True)
-
-
 def crop_overlap(infile, height, width):
     if isinstance(infile, str):
         im = Image.open(infile)
@@ -92,6 +88,9 @@ def slice_img(
     for k, piece in enumerate(crop_f(infile, height, width), start_num):
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
+        # img = img.resize((SLICE_SIZE, SLICE_SIZE))
+        # img = img.resize((32, 32))
+        # img = img.resize((SLICE_SIZE, SLICE_SIZE))
         path = os.path.join(folder_dir, "{}-IMG-{}.png".format(montage_n, k))
         if pix2pix:
             new_img = Image.new('RGB', (512, 256))
