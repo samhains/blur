@@ -4,11 +4,9 @@ from natsort import natsorted, ns
 import numpy as np
 from sys import argv
 
-script, arg1  = argv
+script, arg1 = argv
 
- 
 BASE_DIR = '/home/paperspace/Code/pix2pix/results/{}/latest_net_G_val/images'.format(arg1)
-# BASE_DIR = '.'
 PROCESS_DIR = BASE_DIR + '/processed'
 if not os.path.exists(PROCESS_DIR):
     os.mkdir(PROCESS_DIR)
