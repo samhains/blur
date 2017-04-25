@@ -20,7 +20,6 @@ def get_one_hot_data(d):
     images = []
     one_hot_arr_total = []
     for i, dirname in enumerate(dirs):
-        print(i)
 
         one_hot_arr = np.zeros(len(dirs))
         one_hot_arr[i] = 1
@@ -28,8 +27,9 @@ def get_one_hot_data(d):
         filenames = get_filenames(dirname)
         random.shuffle(filenames)
         for fname in filenames:
-            img = scipy.misc.imread(fname)
-            images.append(img)
+            # img = scipy.misc.imread(fname)
+            images.append(fname)
+            print(fname)
             one_hot_arr_total.append(one_hot_arr)
 
     return np.array(images), np.array(one_hot_arr_total)

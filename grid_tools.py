@@ -213,7 +213,9 @@ def prepare_p2p(input_dir, output_dir):
     i = 0
 
     filenames = get_filenames(input_dir)
-
+    print(filenames[:10])
+    filenames = natsorted(filenames, alg=ns.IGNORECASE)
+    print(filenames[:10])
     imgs_arr = [slice_img(filename, save=False) for filename in filenames]
 
     for imgs in imgs_arr:
@@ -232,16 +234,21 @@ def prepare_p2p(input_dir, output_dir):
 
 
 def retrieve_p2p(folder_dir, dest_dir):
+    i = 0
+    print('fold', folder_dir, dest_dir)
     if not os.path.exists(dest_dir):
         os.mkdir(dest_dir)
     img_filenames = get_filenames(folder_dir)
     img_filenames = natsorted(img_filenames, alg=ns.IGNORECASE)
     img_filenames = np.array(img_filenames)
-    num_of_montages = (len(img_filenames)/64)/9
+    num_of_montages = 1
+    # if num_of_montages < 0:
+        # num_of_montages = 1
     chunked_montages = np.split(img_filenames, num_of_montages)
     for montage_filenames in chunked_montages:
-        chunked_filenames = np.split(montage_filenames, 64)
+        chunked_filenames = np.split(montage_filenames, 5760)
         for filenames in chunked_filenames:
+            i = i+1
             sort_and_montage(
-                filenames, './{}/{}.png'.format(dest_dir, uuid.uuid4()))
+                filenames, './{}/{}.png'.format(dest_dir,i))
 
