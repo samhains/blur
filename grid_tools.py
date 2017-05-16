@@ -1,4 +1,3 @@
-from skimage.filters import gaussian
 from PIL import Image, ImageFilter
 import uuid
 import os
@@ -94,14 +93,12 @@ def slice_img(
         if pix2pix:
             new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
             img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
+            img = img.filter(ImageFilter.GaussianBlur(SIGMA))
             new_img.paste(img)
             new_img.paste(img)
             img = new_img
         img = np.asarray(img)
-        img = gaussian(img, sigma=SIGMA, mode='constant')*255
         img = img.astype('uint8')
-        # if blur:
-        #     img = blur_f(img)
         imgs.append(img)
         if save:
             print('saving to path', path)
