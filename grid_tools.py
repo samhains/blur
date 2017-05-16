@@ -7,38 +7,36 @@ import numpy as np
 import scipy
 from natsort import natsorted, ns
 
-RESIZE_HEIGHT = 256
-RESIZE_WIDTH = 256
 # RESIZE_MAX = 720
-RESIZE_TUPLE = (32, 32)
-SIGMA = 11
-SLICE_SIZE = 256
+SIGMA = 8
+MONTAGE_SLICE_SIZE = 256
+FINAL_SLICE_SIZE = 512
 OVERLAP = 128
 NUM_OF_CROPS = 3
 
-# OVERLAP = ((SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
+# OVERLAP = ((MONTAGE_SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
 OVERLAP_AMOUNT = int(OVERLAP/2)
 # CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
-RESIZE_MAX = SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
+RESIZE_MAX = MONTAGE_SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
 print("OVERLAP AMOUNT", OVERLAP)
 print("RESIZE_MAX", RESIZE_MAX)
 
 
 def calc_overlap_min(j):
-    return (j * SLICE_SIZE) - (j * OVERLAP)
+    return (j * MONTAGE_SLICE_SIZE) - (j * OVERLAP)
 
 
 def calc_overlap(j):
     if j < 0:
         return 0
     elif j == 0:
-        return SLICE_SIZE - OVERLAP_AMOUNT
+        return MONTAGE_SLICE_SIZE - OVERLAP_AMOUNT
     elif j == NUM_OF_CROPS - 1:
-        return (j + 1) * SLICE_SIZE - ((j*2) * OVERLAP_AMOUNT)
+        return (j + 1) * MONTAGE_SLICE_SIZE - ((j*2) * OVERLAP_AMOUNT)
     else:
-        return (j + 1) * SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
+        return (j + 1) * MONTAGE_SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
 
 
 def crop_overlap(infile, height, width):
@@ -48,22 +46,27 @@ def crop_overlap(infile, height, width):
         im = Image.fromarray(infile)
 
     im = im.resize((RESIZE_MAX, RESIZE_MAX))
-    im = im.filter(ImageFilter.GaussianBlur(radius=SIGMA))
 
     # imgwidth, imgheight = im.size
     for i in range(NUM_OF_CROPS):
         for j in range(NUM_OF_CROPS):
             x_min = calc_overlap_min(j)
-            x_max = x_min + SLICE_SIZE
+            x_max = x_min + MONTAGE_SLICE_SIZE
             y_min = calc_overlap_min(i)
-            y_max = y_min + SLICE_SIZE
+            y_max = y_min + MONTAGE_SLICE_SIZE
             box = (x_min, y_min, x_max, y_max)
             yield im.crop(box)
 
 
 def crop(infile, height, width):
-    im = Image.open(infile)
+    if isinstance(infile, str):
+        im = Image.open(infile)
+    else:
+        print(infile)
+        im = Image.fromarray(infile)
+
     imgwidth, imgheight = im.size
+
     for i in range(imgheight//height):
         for j in range(imgwidth//width):
             box = (j*width, i*height, (j+1)*width, (i+1)*height)
@@ -73,8 +76,8 @@ def crop(infile, height, width):
 def slice_img(
         infile,
         folder_dir='./clean_img',
-        height=SLICE_SIZE,
-        width=SLICE_SIZE,
+        height=MONTAGE_SLICE_SIZE,
+        width=MONTAGE_SLICE_SIZE,
         start_num=0,
         blur=False,
         resize=False,
@@ -88,16 +91,16 @@ def slice_img(
     for k, piece in enumerate(crop_f(infile, height, width), start_num):
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
-        # img = img.resize((SLICE_SIZE, SLICE_SIZE))
-        # img = img.resize((32, 32))
-        # img = img.resize((SLICE_SIZE, SLICE_SIZE))
         path = os.path.join(folder_dir, "{}-IMG-{}.png".format(montage_n, k))
         if pix2pix:
-            new_img = Image.new('RGB', (512, 256))
+            new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
+            img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
             new_img.paste(img)
             new_img.paste(img)
             img = new_img
         img = np.asarray(img)
+        img = gaussian(img, sigma=SIGMA, mode='constant')*255
+        img = img.astype('uint8')
         # if blur:
         #     img = blur_f(img)
         imgs.append(img)
@@ -114,8 +117,8 @@ def slice_overlap(infile, folder_dir, pix2pix=False):
     slice_img(
         infile,
         folder_dir=folder_dir,
-        height=SLICE_SIZE,
-        width=SLICE_SIZE,
+        height=MONTAGE_SLICE_SIZE,
+        width=MONTAGE_SLICE_SIZE,
         blur=False,
         crop_f=crop_overlap,
         resize=True,
@@ -224,10 +227,10 @@ def prepare_p2p(input_dir, output_dir):
             slice_img(
                 img,
                 folder_dir=output_dir,
-                height=SLICE_SIZE,
-                width=SLICE_SIZE,
-                blur=False,
-                crop_f=crop_overlap,
+                height=MONTAGE_SLICE_SIZE,
+                width=MONTAGE_SLICE_SIZE,
+                blur=True,
+                crop_f=crop,
                 resize=True,
                 pix2pix=True,
                 montage_n=i)
