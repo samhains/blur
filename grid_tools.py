@@ -8,8 +8,8 @@ import scipy
 from natsort import natsorted, ns
 
 # RESIZE_MAX = 720
-SIGMA = 8
-MONTAGE_SLICE_SIZE = 256
+SIGMA = 6
+MONTAGE_SLICE_SIZE = 200
 FINAL_SLICE_SIZE = 512
 OVERLAP = 128
 NUM_OF_CROPS = 3
@@ -62,7 +62,6 @@ def crop(infile, height, width):
     if isinstance(infile, str):
         im = Image.open(infile)
     else:
-        print(infile)
         im = Image.fromarray(infile)
 
     imgwidth, imgheight = im.size
@@ -91,7 +90,7 @@ def slice_img(
     for k, piece in enumerate(crop_f(infile, height, width), start_num):
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
-        path = os.path.join(folder_dir, "{}-IMG-{}.png".format(montage_n, k))
+        path = os.path.join(folder_dir, "{}.png".format(uuid.uuid4()))
         if pix2pix:
             new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
             img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
