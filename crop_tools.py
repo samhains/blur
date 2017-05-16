@@ -2,14 +2,17 @@ import os
 import utils
 import matplotlib.pyplot as plt
 from skimage.transform import resize
+from PIL import Image, ImageFilter
 from multiprocessing.dummy import Pool as ThreadPool 
 from skimage.filters import gaussian
 import numpy as np
 import scipy
 
 NUM_OF_THREADS = 1
+SIGMA = 11
+FINAL_SLICE_SIZE = 512
 
-filename = 'images'
+filename = 'test'
 dirname = './'+filename
 BLUR_DIRNAME = dirname+'_blurred'
 CROP_DIRNAME = dirname+'_cropped'
@@ -36,15 +39,15 @@ def save_cropped(filenames_arr):
         img = scipy.misc.imread(fname)
         fname = fname.split('/')[-1]
         img = utils.imcrop_tosquare(img)
-        img = resize(img, (512, 512))
-        b_img = gaussian(img, sigma=11, mode='constant')
+        img = resize(img, (FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))*255
+        img = img.astype('uint8')
+        img = Image.fromarray(img)
+        img = img.filter(ImageFilter.GaussianBlur(SIGMA))
+        new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
+        new_img.paste(img)
         filename = dirname.split('.')[-1]
-        b_fname = '{}/{}_{}'.format(BLUR_DIRNAME, filename, fname)
-        scipy.misc.imsave(b_fname, b_img)
-        # a_fname = '{}/{}_{}'.format(CROP_DIRNAME, filename, fname)
-        # print('a_filename', a_fname)
-        # scipy.misc.imsave(a_fname, img)
-        # scipy.misc.imsave(b_fname, b_img)
+        fname = '{}/{}_{}'.format(BLUR_DIRNAME, filename, fname)
+        new_img.save(fname)
 
 
 pool.map(save_cropped, filenames_split)
