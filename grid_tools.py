@@ -9,7 +9,7 @@ from natsort import natsorted, ns
 
 # RESIZE_MAX = 720
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 200
+MONTAGE_SLICE_SIZE = 512
 FINAL_SLICE_SIZE = 512
 OVERLAP = 128
 NUM_OF_CROPS = 3
@@ -19,9 +19,9 @@ OVERLAP_AMOUNT = int(OVERLAP/2)
 # CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
 RESIZE_MAX = MONTAGE_SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
-# print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
-# print("OVERLAP AMOUNT", OVERLAP)
-# print("RESIZE_MAX", RESIZE_MAX)
+print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
+print("OVERLAP AMOUNT", OVERLAP)
+print("RESIZE_MAX", RESIZE_MAX)
 
 
 def calc_overlap_min(j):
@@ -85,12 +85,13 @@ def slice_img(
         save=True,
         montage_n=1):
     imgs = []
+    print('slicing image')
     if not os.path.exists(folder_dir):
         os.mkdir(folder_dir)
     for k, piece in enumerate(crop_f(infile, height, width), start_num):
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
-        path = os.path.join(folder_dir, "s{}_{}.png".format(SIGMA, uuid.uuid4()))
+        path = os.path.join(folder_dir, "s{}_{}_{}.png".format(SIGMA, montage_n, k))
         if pix2pix:
             new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
             img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
@@ -117,15 +118,10 @@ def slice_overlap(infile, folder_dir, pix2pix=False):
         height=MONTAGE_SLICE_SIZE,
         width=MONTAGE_SLICE_SIZE,
         blur=False,
-        crop_f=crop_overlap,
-        resize=True,
-        pix2pix=pix2pix)
+        crop_f=crop_overlap, resize=True, pix2pix=pix2pix) 
 
-
-def overlap_crop_x(img, min_val, max_val):
-    # Left upper right lower
-    # img = np.asarray(img*255, np.uint8)
-    # img = Image.fromarray(img)
+def overlap_crop_x(img, min_val, max_val): 
+    # Left upper right lower img = np.asarray(img*255, np.uint8) img = Image.fromarray(img)
     if type(img) == np.ndarray:
         img = np.asarray(img*255, np.uint8)
         img = Image.fromarray(img)
@@ -208,8 +204,27 @@ def sort_and_montage(filenames, file_name):
         imgs = imgs/255.0
     montage(imgs, saveto=file_name)
 
+def prepare_p2p(input_dir, output_dir, overlap=True):
+    i = 0
 
-def prepare_p2p(input_dir, output_dir):
+    filenames = get_filenames(input_dir)
+    print(filenames[:10])
+    filenames = natsorted(filenames, alg=ns.IGNORECASE)
+
+    for filename in filenames:
+        i = i+1
+        slice_img(
+            filename,
+            folder_dir=output_dir,
+            height=MONTAGE_SLICE_SIZE,
+            width=MONTAGE_SLICE_SIZE,
+            blur=True,
+            crop_f=crop_overlap,
+            resize=True,
+            pix2pix=True,
+            montage_n=i)
+
+def prepare_p2p_grid(input_dir, output_dir, overlap=True):
     i = 0
 
     filenames = get_filenames(input_dir)
@@ -220,6 +235,7 @@ def prepare_p2p(input_dir, output_dir):
 
     for imgs in imgs_arr:
         for img in imgs:
+            print('imgs', img)
             i = i+1
             slice_img(
                 img,
@@ -227,7 +243,7 @@ def prepare_p2p(input_dir, output_dir):
                 height=MONTAGE_SLICE_SIZE,
                 width=MONTAGE_SLICE_SIZE,
                 blur=True,
-                crop_f=crop,
+                crop_f=crop_overlap,
                 resize=True,
                 pix2pix=True,
                 montage_n=i)
@@ -246,7 +262,7 @@ def retrieve_p2p(folder_dir, dest_dir):
         # num_of_montages = 1
     chunked_montages = np.split(img_filenames, num_of_montages)
     for montage_filenames in chunked_montages:
-        chunked_filenames = np.split(montage_filenames, 5760)
+        chunked_filenames = np.split(montage_filenames, num_of_montages)
         for filenames in chunked_filenames:
             i = i+1
             sort_and_montage(
