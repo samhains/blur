@@ -4,10 +4,11 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
+import scipy.misc
 from natsort import natsorted, ns
 
 # RESIZE_MAX = 720
-SIGMA = 6
+SIGMA = 12
 MONTAGE_SLICE_SIZE = 200
 FINAL_SLICE_SIZE = 512
 OVERLAP = 128
@@ -18,9 +19,9 @@ OVERLAP_AMOUNT = int(OVERLAP/2)
 # CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
 RESIZE_MAX = MONTAGE_SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
-print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
-print("OVERLAP AMOUNT", OVERLAP)
-print("RESIZE_MAX", RESIZE_MAX)
+# print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
+# print("OVERLAP AMOUNT", OVERLAP)
+# print("RESIZE_MAX", RESIZE_MAX)
 
 
 def calc_overlap_min(j):
@@ -89,7 +90,7 @@ def slice_img(
     for k, piece in enumerate(crop_f(infile, height, width), start_num):
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
-        path = os.path.join(folder_dir, "{}.png".format(uuid.uuid4()))
+        path = os.path.join(folder_dir, "s{}_{}.png".format(SIGMA, uuid.uuid4()))
         if pix2pix:
             new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
             img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
@@ -249,5 +250,5 @@ def retrieve_p2p(folder_dir, dest_dir):
         for filenames in chunked_filenames:
             i = i+1
             sort_and_montage(
-                filenames, './{}/{}.png'.format(dest_dir,i))
+                filenames, './{}/s8_{}.png'.format(dest_dir,i))
 

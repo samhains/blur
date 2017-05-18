@@ -12,7 +12,7 @@ NUM_OF_THREADS = 1
 SIGMA = 11
 FINAL_SLICE_SIZE = 512
 
-filename = 'test'
+filename = 'frog'
 dirname = './'+filename
 BLUR_DIRNAME = dirname+'_blurred'
 CROP_DIRNAME = dirname+'_cropped'
