@@ -7,15 +7,17 @@ import scipy
 import scipy.misc
 from natsort import natsorted, ns
 
-# RESIZE_MAX = 720
 PIX_2_PIX_CROP = False
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 512
+MONTAGE_SLICE_SIZE = 256   
 FINAL_SLICE_SIZE = MONTAGE_SLICE_SIZE
-OVERLAP = int(FINAL_SLICE_SIZE/2)
+if MONTAGE_SLICE_SIZE == 512:
+    OVERLAP = int(FINAL_SLICE_SIZE/4)-10
+else:
+    OVERLAP = int(FINAL_SLICE_SIZE/2)
+
 NUM_OF_CROPS = 3
 
-# OVERLAP = ((MONTAGE_SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
 OVERLAP_AMOUNT = int(OVERLAP/2)
 # CALCULATING OVERAPS
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
@@ -151,7 +153,6 @@ def overlap_crop_y(img, min_val, max_val):
     if max_val == RESIZE_MAX:
         return img.crop((0, OVERLAP_AMOUNT, width, height))
     else:
-        # print('cropping Y', min_val, max_val)
         return img.crop((0, OVERLAP_AMOUNT, width, height - OVERLAP_AMOUNT))
 
 
@@ -236,10 +237,10 @@ def prepare_p2p_grid(input_dir, output_dir, overlap=True):
     filenames = natsorted(filenames, alg=ns.IGNORECASE)
     print(filenames[:10])
     imgs_arr = [slice_img(filename, save=False) for filename in filenames]
+    imgs_arr = [slice_img(filename, save=False) for filename in filenames]
 
     for imgs in imgs_arr:
         for img in imgs:
-            print('imgs', img)
             i = i+1
             slice_img(
                 img,
