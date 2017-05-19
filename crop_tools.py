@@ -10,9 +10,9 @@ import scipy
 
 NUM_OF_THREADS = 1
 SIGMA = 12
-FINAL_SLICE_SIZE = 512
+FINAL_SLICE_SIZE = 256
 
-filename = 'final2'
+filename = 'clean_img'
 dirname = './'+filename
 BLUR_DIRNAME = dirname+'_blurred'
 CROP_DIRNAME = dirname+'_cropped'

@@ -9,8 +9,8 @@ from natsort import natsorted, ns
 
 # RESIZE_MAX = 720
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 512
-FINAL_SLICE_SIZE = 512
+MONTAGE_SLICE_SIZE = 256
+FINAL_SLICE_SIZE = 256
 OVERLAP = 128
 NUM_OF_CROPS = 3
 
@@ -258,13 +258,13 @@ def retrieve_p2p(folder_dir, dest_dir):
     img_filenames = natsorted(img_filenames, alg=ns.IGNORECASE)
     img_filenames = np.array(img_filenames)
     num_of_montages = 1
-    # if num_of_montages < 0:
-        # num_of_montages = 1
+    num_of_images = len(img_filenames)/9
+    print(num_of_images)
     chunked_montages = np.split(img_filenames, num_of_montages)
-    for montage_filenames in chunked_montages:
-        chunked_filenames = np.split(montage_filenames, num_of_montages)
+    for k, montage_filenames in enumerate(chunked_montages):
+        chunked_filenames = np.split(montage_filenames, num_of_images)
         for filenames in chunked_filenames:
             i = i+1
             sort_and_montage(
-                filenames, './{}/s8_{}.png'.format(dest_dir,i))
+                filenames, './{}/s8_{}_{}.png'.format(dest_dir,k, i))
 
