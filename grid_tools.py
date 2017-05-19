@@ -8,10 +8,11 @@ import scipy.misc
 from natsort import natsorted, ns
 
 # RESIZE_MAX = 720
+PIX_2_PIX_CROP = False
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 256
-FINAL_SLICE_SIZE = 256
-OVERLAP = 128
+MONTAGE_SLICE_SIZE = 512
+FINAL_SLICE_SIZE = MONTAGE_SLICE_SIZE
+OVERLAP = int(FINAL_SLICE_SIZE/2)
 NUM_OF_CROPS = 3
 
 # OVERLAP = ((MONTAGE_SLICE_SIZE*NUM_OF_CROPS) - RESIZE_MAX)/ NUM_OF_OVERLAPS
@@ -20,7 +21,7 @@ OVERLAP_AMOUNT = int(OVERLAP/2)
 NUM_OF_OVERLAPS = NUM_OF_CROPS-1
 RESIZE_MAX = MONTAGE_SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
 print("OVERLAP AMOUNT", OVERLAP_AMOUNT)
-print("OVERLAP AMOUNT", OVERLAP)
+print("OVERLAP", OVERLAP)
 print("RESIZE_MAX", RESIZE_MAX)
 
 
@@ -91,7 +92,8 @@ def slice_img(
     for k, piece in enumerate(crop_f(infile, height, width), start_num):
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
-        path = os.path.join(folder_dir, "s{}_{}_{}.png".format(SIGMA, montage_n, k))
+        path = os.path.join(
+                folder_dir, "s{}_{}_{}.png".format(SIGMA, montage_n, k))
         if pix2pix:
             new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
             img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
@@ -118,10 +120,10 @@ def slice_overlap(infile, folder_dir, pix2pix=False):
         height=MONTAGE_SLICE_SIZE,
         width=MONTAGE_SLICE_SIZE,
         blur=False,
-        crop_f=crop_overlap, resize=True, pix2pix=pix2pix) 
+        crop_f=crop_overlap, resize=True, pix2pix=pix2pix)
 
-def overlap_crop_x(img, min_val, max_val): 
-    # Left upper right lower img = np.asarray(img*255, np.uint8) img = Image.fromarray(img)
+
+def overlap_crop_x(img, min_val, max_val):
     if type(img) == np.ndarray:
         img = np.asarray(img*255, np.uint8)
         img = Image.fromarray(img)
@@ -204,6 +206,7 @@ def sort_and_montage(filenames, file_name):
         imgs = imgs/255.0
     montage(imgs, saveto=file_name)
 
+
 def prepare_p2p(input_dir, output_dir, overlap=True):
     i = 0
 
@@ -221,8 +224,9 @@ def prepare_p2p(input_dir, output_dir, overlap=True):
             blur=True,
             crop_f=crop_overlap,
             resize=True,
-            pix2pix=True,
+            pix2pix=PIX_2_PIX_CROP,
             montage_n=i)
+
 
 def prepare_p2p_grid(input_dir, output_dir, overlap=True):
     i = 0
@@ -245,7 +249,7 @@ def prepare_p2p_grid(input_dir, output_dir, overlap=True):
                 blur=True,
                 crop_f=crop_overlap,
                 resize=True,
-                pix2pix=True,
+                pix2pix=PIX_2_PIX_CROP,
                 montage_n=i)
 
 
@@ -266,5 +270,4 @@ def retrieve_p2p(folder_dir, dest_dir):
         for filenames in chunked_filenames:
             i = i+1
             sort_and_montage(
-                filenames, './{}/s8_{}_{}.png'.format(dest_dir,k, i))
-
+                filenames, './{}/s8_{}_{}.png'.format(dest_dir, k, i))
