@@ -3,10 +3,12 @@ import os
 import utils
 import numpy as np
 from skimage.transform import resize
-from skimage.filters import gaussian
+from PIL import Image, ImageFilter
 
 
-dirname = './videos'
+dirname = './insta_videos'
+FINAL_SLICE_SIZE = 256
+SIGMA = 11
 
 # Load every image file in the provided directory
 images = [os.path.join(dirname, fname)
@@ -26,11 +28,15 @@ def vid_cap(video_path, video_count):
         if success:
             img = np.array(image)
             img = utils.imcrop_tosquare(img)
-            img = resize(img, (512, 512), mode="constant")
-
-            img = gaussian(img, sigma=12, multichannel=True)*255
+            img = resize(img, (FINAL_SLICE_SIZE, FINAL_SLICE_SIZE), mode='constant')*255
+            img = img.astype('uint8')
+            img = Image.fromarray(img)
+            img = img.filter(ImageFilter.GaussianBlur(SIGMA))
+            new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
+            new_img.paste(img)
             print('Read a new frame: ', success)
-            cv2.imwrite("video_frames/{}frame{}.jpg".format(video_count, count), img)     # save frame as JPEG file
+            new_img = np.array(new_img)
+            cv2.imwrite("video_frames/{}frame{}.jpg".format(video_count, count), new_img)     # save frame as JPEG file
             count += 1
 
 video_count = 0

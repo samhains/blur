@@ -7,9 +7,9 @@ import scipy
 import scipy.misc
 from natsort import natsorted, ns
 
-PIX_2_PIX_CROP = False
+PIX_2_PIX_CROP = True
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 256   
+MONTAGE_SLICE_SIZE = 512   
 FINAL_SLICE_SIZE = MONTAGE_SLICE_SIZE
 if MONTAGE_SLICE_SIZE == 512:
     OVERLAP = int(FINAL_SLICE_SIZE/4)-10

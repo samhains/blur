@@ -10,9 +10,9 @@ import scipy
 
 NUM_OF_THREADS = 1
 SIGMA = 12
-FINAL_SLICE_SIZE = 256
+FINAL_SLICE_SIZE = 512
 
-filename = 'clean_img'
+filename = 'pix2pix_512_r1'
 dirname = './'+filename
 BLUR_DIRNAME = dirname+'_blurred'
 CROP_DIRNAME = dirname+'_cropped'
@@ -73,11 +73,11 @@ def pix2pix_blur(filenames_arr):
         new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
         new_img.paste(img)
         filename = dirname.split('.')[-1]
-        fname = '{}/{}_{}'.format(BLUR_DIRNAME, filename, fname)
+        fname = '{}/{}_{}_{}'.format(BLUR_DIRNAME, filename,SIGMA, fname)
         new_img.save(fname)
 
 
-pool.map(simple_crop, filenames_split)
+pool.map(pix2pix_blur, filenames_split)
 
 #save_cropped(filenames_split)
 
