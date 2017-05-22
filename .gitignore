@@ -1,3 +1,15 @@
 .DS_Store
 .ipynb_checkpoints/
 __pycache__/
+.prepare_video.py.swo
+1.jpg
+clean_img/
+clean_img_cropped/
+clean_img_cropped_256/
+grid_tools.pyc
+insta_videos/
+youtube_videos/
+clean_img_output6/
+dcgan200old/
+processed/
+processed_single/

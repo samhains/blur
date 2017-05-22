@@ -12,7 +12,7 @@ NUM_OF_THREADS = 1
 SIGMA = 12
 FINAL_SLICE_SIZE = 512
 
-filename = 'images'
+filename = 'pix2pix_512_r1'
 dirname = './'+filename
 BLUR_DIRNAME = dirname+'_blurred'
 CROP_DIRNAME = dirname+'_cropped'
@@ -43,11 +43,25 @@ def simple_crop(filenames_arr):
         img = img.astype('uint8')
         img = Image.fromarray(img)
         filename = dirname.split('.')[-1]
+        fname = '{}/{}_{}'.format(CROP_DIRNAME, filename, fname)
+        img.save(fname)
+
+
+def simple_blur(filenames_arr):
+    for fname in filenames_arr:
+        img = scipy.misc.imread(fname)
+        fname = fname.split('/')[-1]
+        img = utils.imcrop_tosquare(img)
+        img = resize(img, (FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))*255
+        img = img.astype('uint8')
+        img = Image.fromarray(img)
+        img = img.filter(ImageFilter.GaussianBlur(SIGMA))
+        filename = dirname.split('.')[-1]
         fname = '{}/{}_{}'.format(BLUR_DIRNAME, filename, fname)
         img.save(fname)
 
 
-def blur_crop(filenames_arr):
+def pix2pix_blur(filenames_arr):
     for fname in filenames_arr:
         img = scipy.misc.imread(fname)
         fname = fname.split('/')[-1]
@@ -59,11 +73,12 @@ def blur_crop(filenames_arr):
         new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
         new_img.paste(img)
         filename = dirname.split('.')[-1]
-        fname = '{}/{}_{}'.format(BLUR_DIRNAME, filename, fname)
+        fname = '{}/{}_{}_{}'.format(BLUR_DIRNAME, filename,SIGMA, fname)
         new_img.save(fname)
 
 
-pool.map(simple_crop, filenames_split)
+pool.map(pix2pix_blur, filenames_split)
 
 #save_cropped(filenames_split)
+
 
