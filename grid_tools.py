@@ -1,4 +1,5 @@
 from PIL import Image, ImageFilter
+import math
 import uuid
 import os
 import matplotlib.pyplot as plt
@@ -9,7 +10,7 @@ from natsort import natsorted, ns
 
 PIX_2_PIX_CROP = True
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 512   
+MONTAGE_SLICE_SIZE = 256   
 FINAL_SLICE_SIZE = MONTAGE_SLICE_SIZE
 if MONTAGE_SLICE_SIZE == 512:
     OVERLAP = int(FINAL_SLICE_SIZE/4)-10
@@ -27,19 +28,52 @@ print("OVERLAP", OVERLAP)
 print("RESIZE_MAX", RESIZE_MAX)
 
 
-def calc_overlap_min(j):
-    return (j * MONTAGE_SLICE_SIZE) - (j * OVERLAP)
+def calc_overlap_min(j, olap=OVERLAP):
+    return (j * MONTAGE_SLICE_SIZE) - (j * olap)
 
 
-def calc_overlap(j):
+def calc_overlap(j, olap_amount=OVERLAP_AMOUNT):
     if j < 0:
         return 0
     elif j == 0:
-        return MONTAGE_SLICE_SIZE - OVERLAP_AMOUNT
+        return MONTAGE_SLICE_SIZE - olap_amount
     elif j == NUM_OF_CROPS - 1:
-        return (j + 1) * MONTAGE_SLICE_SIZE - ((j*2) * OVERLAP_AMOUNT)
+        return (j + 1) * MONTAGE_SLICE_SIZE - ((j*2) * olap_amount)
     else:
-        return (j + 1) * MONTAGE_SLICE_SIZE - (((j*2)+1) * OVERLAP_AMOUNT)
+        return (j + 1) * MONTAGE_SLICE_SIZE - (((j*2)+1) * olap_amount)
+
+def crop_overlap_cyclegan(infile, height, width):
+    if isinstance(infile, str):
+        im = Image.open(infile)
+    else:
+        im = Image.fromarray(infile)
+
+    print('imsize', im.width, im.height)
+    num_of_crops_y = max(2, math.ceil(im.height/MONTAGE_SLICE_SIZE))
+    num_of_crops_x = max(2, math.ceil(im.width/MONTAGE_SLICE_SIZE))
+    print('ycreops', num_of_crops_y)
+    print('xcreops', num_of_crops_x)
+
+    num_overlaps_x = num_of_crops_x-1
+    num_overlaps_y = num_of_crops_y-1
+
+    overlap_height = (MONTAGE_SLICE_SIZE * num_of_crops_y - im.height)/num_overlaps_y
+    overlap_width = (MONTAGE_SLICE_SIZE * num_of_crops_x - im.width)/num_overlaps_x
+    print(overlap_height, overlap_width)
+    # # CALCULATING OVERAPS
+    # RESIZE_MAX = MONTAGE_SLICE_SIZE*NUM_OF_CROPS-(NUM_OF_OVERLAPS * OVERLAP)
+
+    # im = im.resize((RESIZE_MAX, RESIZE_MAX))
+
+    # imgwidth, imgheight = im.size
+    for i in range(num_of_crops_y):
+        for j in range(num_of_crops_x):
+            x_min = calc_overlap_min(j, overlap_width)
+            x_max = x_min + MONTAGE_SLICE_SIZE
+            y_min = calc_overlap_min(i, overlap_height)
+            y_max = y_min + MONTAGE_SLICE_SIZE
+            box = (x_min, y_min, x_max, y_max)
+            yield im.crop(box)
 
 
 def crop_overlap(infile, height, width):
@@ -47,6 +81,8 @@ def crop_overlap(infile, height, width):
         im = Image.open(infile)
     else:
         im = Image.fromarray(infile)
+
+    print('imsize', im.width, im.height)
 
     im = im.resize((RESIZE_MAX, RESIZE_MAX))
 
@@ -59,7 +95,6 @@ def crop_overlap(infile, height, width):
             y_max = y_min + MONTAGE_SLICE_SIZE
             box = (x_min, y_min, x_max, y_max)
             yield im.crop(box)
-
 
 def crop(infile, height, width):
     if isinstance(infile, str):
@@ -125,13 +160,13 @@ def slice_overlap(infile, folder_dir, pix2pix=False):
         crop_f=crop_overlap, resize=True, pix2pix=pix2pix)
 
 
-def overlap_crop_x(img, min_val, max_val):
+def overlap_crop_x(img, min_val, max_val, olap_amount=OVERLAP_AMOUNT):
     if type(img) == np.ndarray:
         img = np.asarray(img*255, np.uint8)
         img = Image.fromarray(img)
 
     width, height = img.size
-    crop_amount = OVERLAP_AMOUNT
+    crop_amount = olap_amount 
     if min_val == 0:
         return img.crop((0, 0, width - crop_amount, height))
     if max_val == RESIZE_MAX:
@@ -140,7 +175,7 @@ def overlap_crop_x(img, min_val, max_val):
         return img.crop((crop_amount, 0, width - crop_amount, height))
 
 
-def overlap_crop_y(img, min_val, max_val):
+def overlap_crop_y(img, min_val, max_val, olap_amount=OVERLAP_AMOUNT):
 
     # Left upper right lower
 
@@ -149,11 +184,11 @@ def overlap_crop_y(img, min_val, max_val):
         img = Image.fromarray(img)
     width, height = img.size
     if min_val == 0:
-        return img.crop((0, 0, width, height-OVERLAP_AMOUNT))
+        return img.crop((0, 0, width, height-olap_amount))
     if max_val == RESIZE_MAX:
-        return img.crop((0, OVERLAP_AMOUNT, width, height))
+        return img.crop((0, olap_amount, width, height))
     else:
-        return img.crop((0, OVERLAP_AMOUNT, width, height - OVERLAP_AMOUNT))
+        return img.crop((0, olap_amount, width, height - olap_amount))
 
 
 def montage(images, saveto='montage.png'):
@@ -228,6 +263,27 @@ def prepare_p2p(input_dir, output_dir, overlap=True):
             pix2pix=PIX_2_PIX_CROP,
             montage_n=i)
 
+def prepare_cyclegan(input_dir, output_dir, overlap=True):
+    i = 0
+
+
+    filenames = get_filenames(input_dir)
+    print(filenames[:10])
+    filenames = natsorted(filenames, alg=ns.IGNORECASE)
+
+    for filename in filenames:
+        i = i+1
+        slice_img(
+            filename,
+            folder_dir=output_dir,
+            height=MONTAGE_SLICE_SIZE,
+            width=MONTAGE_SLICE_SIZE,
+            blur=False,
+            crop_f=crop_overlap_cyclegan,
+            resize=True,
+            pix2pix=False,
+            montage_n=i)
+
 
 def prepare_p2p_grid(input_dir, output_dir, overlap=True):
     i = 0
@@ -264,6 +320,7 @@ def retrieve_p2p(folder_dir, dest_dir):
     img_filenames = np.array(img_filenames)
     num_of_montages = 1
     num_of_images = len(img_filenames)/9
+    print(len(img_filenames))
     print(num_of_images)
     chunked_montages = np.split(img_filenames, num_of_montages)
     for k, montage_filenames in enumerate(chunked_montages):
