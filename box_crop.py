@@ -5,7 +5,7 @@ import json
 import math
 
 
-filename = 'out'
+filename = 'lizards_total'
 dirname = './'+filename
 CROP_DIRNAME = dirname+'_cropped'
 
@@ -43,6 +43,7 @@ def crop_box(box, filename):
         x1 = original_width
         y1 = original_height
 
+    print(x0, y0, y0, y1)
     width = x1-x0
     height = y1-y0
     print('crop width', width, 'crop height', height)
@@ -61,13 +62,12 @@ def get_crop_box_from_json(filename):
         y0 = crop_details['topleft']['y']
         x1 = crop_details['bottomright']['x']
         y1 = crop_details['bottomright']['y']
-        print('x0', x0, 'y0', y0, 'x1', x1, 'y1', y1,)
         return (x0, y0, x1, y1)
     except:
         print('error loading JSON')
         return None
 # Load every image file in the provided directory
-filenames = [ fname.split('.')[0] for fname in os.listdir(dirname) if fname.endswith('.jpg')]
+filenames = [ fname[:-4] for fname in os.listdir(dirname) if fname.endswith('.jpg')]
 
 filenames = np.asarray(filenames)
 
@@ -76,4 +76,3 @@ print(filenames)
 for fname in filenames:
     box = get_crop_box_from_json(fname)
     crop_box(box, fname)
-
