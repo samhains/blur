@@ -4,9 +4,8 @@ from natsort import natsorted, ns
 import numpy as np
 from sys import argv
 
-script, arg1 = argv
 
-BASE_DIR = '/home/paperspace/Code/pix2pix/results/{}/latest_net_G_val/images'.format(arg1)
+BASE_DIR = './'
 PROCESS_DIR = BASE_DIR + '/processed'
 if not os.path.exists(PROCESS_DIR):
     os.mkdir(PROCESS_DIR)
@@ -23,7 +22,7 @@ def get_filenames(folder_dir):
 def get_images(filenames):
     print('getting images')
     imgs = [plt.imread(fname)[..., :3] for fname in filenames]
-    return np.array(imgs)
+    return np.array(imgs)/255
 
 
 def normalize(input_filenames, output_filenames, batch_num):

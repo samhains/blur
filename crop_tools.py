@@ -12,7 +12,7 @@ NUM_OF_THREADS = 1
 SIGMA = 12
 FINAL_SLICE_SIZE = 512
 
-filename = 'lizards'
+filename = 'k'
 dirname = './'+filename
 BLUR_DIRNAME = dirname+'_blurred'
 CROP_DIRNAME = dirname+'_cropped'
@@ -21,7 +21,7 @@ pool = ThreadPool(NUM_OF_THREADS)
 
 # Load every image file in the provided directory
 filenames = [os.path.join(dirname, fname)
-             for fname in os.listdir(dirname)]
+             for fname in os.listdir(dirname) if fname.endswith('.jpg')]
 
 filenames = np.asarray(filenames)
 filenames_split = np.array_split(filenames, NUM_OF_THREADS)
@@ -41,8 +41,8 @@ def simple_crop(filenames_arr):
         try:
             img = scipy.misc.imread(fname)
             fname = fname.split('/')[-1]
-            #img = utils.imcrop_tosquare(img)
-            #img = resize(img, (FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))*255
+            img = utils.imcrop_tosquare(img)
+            img = resize(img, (FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))*255
             img = img.astype('uint8')
             img = Image.fromarray(img)
             filename = dirname.split('.')[-1]

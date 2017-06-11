@@ -10,7 +10,7 @@ from natsort import natsorted, ns
 
 PIX_2_PIX_CROP = True
 SIGMA = 12
-MONTAGE_SLICE_SIZE = 256   
+MONTAGE_SLICE_SIZE = 512   
 FINAL_SLICE_SIZE = MONTAGE_SLICE_SIZE
 if MONTAGE_SLICE_SIZE == 512:
     OVERLAP = int(FINAL_SLICE_SIZE/4)-10
@@ -47,6 +47,16 @@ def crop_overlap_cyclegan(infile, height, width):
         im = Image.open(infile)
     else:
         im = Image.fromarray(infile)
+
+    if im.width > im.height:
+        new_height = 178
+        new_width = int(new_height * im.width / im.height)
+    else:
+        new_width = 178
+        new_height = int(new_width * im.height / im.width)
+
+    im = im.resize((new_width, new_height))
+
 
     print('imsize', im.width, im.height)
     num_of_crops_y = max(2, math.ceil(im.height/MONTAGE_SLICE_SIZE))
@@ -130,7 +140,7 @@ def slice_img(
         img = Image.new('RGB', (height, width), 255)
         img.paste(piece)
         path = os.path.join(
-                folder_dir, "s{}_{}_{}.png".format(SIGMA, montage_n, k))
+                folder_dir, "s{}_{}_{}.jpg".format(SIGMA, montage_n, k))
         if pix2pix:
             new_img = Image.new('RGB', (FINAL_SLICE_SIZE*2, FINAL_SLICE_SIZE))
             img = img.resize((FINAL_SLICE_SIZE, FINAL_SLICE_SIZE))
@@ -238,8 +248,7 @@ def sort_and_montage(filenames, file_name):
     filenames = natsorted(filenames, alg=ns.IGNORECASE)
     imgs = [save_image(fname) for fname in filenames]
     imgs = np.array(imgs).astype(np.float32)
-    if(imgs[0][0][0][0] > 1):
-        imgs = imgs/255.0
+    imgs = imgs / 255.0
     montage(imgs, saveto=file_name)
 
 
@@ -303,7 +312,7 @@ def prepare_p2p_grid(input_dir, output_dir, overlap=True):
                 folder_dir=output_dir,
                 height=MONTAGE_SLICE_SIZE,
                 width=MONTAGE_SLICE_SIZE,
-                blur=True,
+                blur=False,
                 crop_f=crop_overlap,
                 resize=True,
                 pix2pix=PIX_2_PIX_CROP,
@@ -328,4 +337,4 @@ def retrieve_p2p(folder_dir, dest_dir):
         for filenames in chunked_filenames:
             i = i+1
             sort_and_montage(
-                filenames, './{}/s8_{}_{}.png'.format(dest_dir, k, i))
+                filenames, './{}/s8_{}_{}.jpg'.format(dest_dir, k, i))
