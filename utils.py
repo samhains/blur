@@ -7,7 +7,7 @@ Parag K. Mital
 Copyright Parag K. Mital, June 2016.
 """
 import matplotlib.pyplot as plt
-import tensorflow as tf
+# import tensorflow as tf
 import urllib
 import numpy as np
 import zipfile
@@ -95,7 +95,7 @@ def get_celeb_files():
 
         # create a string using the current loop counter
         f = '000%03d.jpg' % img_i
-        
+
         if os.path.exists('img_align_celeba/'+f):
             continue
 
